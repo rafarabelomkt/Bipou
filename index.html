@@ -68,7 +68,18 @@ input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 
 .counter b{font:600 1.6rem var(--f-num);color:var(--blue);font-variant-numeric:tabular-nums;vertical-align:-2px}
 /* Câmera grande: ocupa quase toda a altura entre o topo e a barra de baixo */
 .cam{position:relative;width:100%;max-width:100%;height:calc(100svh - 56px - var(--nav-h) - 130px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));min-height:360px;background:#111;border-radius:14px;overflow:hidden;outline:4px solid transparent;transition:outline-color .15s}
-.cam.flash-ok{outline-color:var(--ok)}.cam.flash-dup{outline-color:var(--err)}.cam.flash-warn{outline-color:#f5a623}
+/* Sinal na câmera: borda grossa + símbolo grande, aparece e some */
+.cam .flash{position:absolute;inset:0;border-radius:14px;pointer-events:none;opacity:0;display:flex;align-items:center;justify-content:center;z-index:3}
+.cam .flash span{width:110px;height:110px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:64px;font-weight:900;line-height:1;transform:scale(.6)}
+.cam .flash.ok{box-shadow:inset 0 0 0 14px #00C853;background:rgba(0,200,83,.12)}
+.cam .flash.ok span{background:rgba(0,166,80,.92)}
+.cam .flash.bad{box-shadow:inset 0 0 0 14px #FF1744;background:rgba(255,23,68,.14)}
+.cam .flash.bad span{background:rgba(224,49,43,.94)}
+.cam .flash.show{animation:camflash .85s ease-out forwards}
+.cam .flash.show span{animation:camicon .85s ease-out forwards}
+@keyframes camflash{0%{opacity:0}10%{opacity:1}65%{opacity:1}100%{opacity:0}}
+@keyframes camicon{0%{transform:scale(.6)}20%{transform:scale(1.08)}35%{transform:scale(1)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.cam .flash.show,.cam .flash.show span{animation-duration:.01s}}
 .cam video{width:100%;height:100%;object-fit:cover;display:block}
 .cam .frame{position:absolute;left:5%;right:5%;top:20%;bottom:20%;border:3px solid rgba(255,230,0,.95);border-radius:12px;box-shadow:0 0 0 999px rgba(0,0,0,.18)}
 .cam .laser{position:absolute;left:7%;right:7%;top:50%;height:2px;background:#ff3b30;box-shadow:0 0 8px #ff3b30}
@@ -271,6 +282,7 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--su
         </button>
       </div>
       <span class="engine" id="engine">Carregando leitor…</span>
+      <div class="flash" id="camFlash" aria-hidden="true"><span id="camFlashIc"></span></div>
       <div class="cam-msg" id="camMsg">
         <span id="camMsgText">Abrindo a câmera…</span>
         <button class="btn primary" id="btnPhoto" hidden>Tirar foto do código</button>
@@ -310,7 +322,7 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--su
       <input type="search" id="fBusca" placeholder="Buscar número do pacote" inputmode="numeric">
     </div>
     <div id="histList" class="view"></div>
-    <p class="credit">Bipou · Este aplicativo foi criado por Rafael Rabelo<br>versão 5</p>
+    <p class="credit">Bipou · Este aplicativo foi criado por Rafael Rabelo<br>versão 7</p>
   </section>
 
   <!-- DETALHE DE UMA LEITURA -->
@@ -568,10 +580,12 @@ function setStatus(kind, ic, title, sub){
   if (sub){ const b = document.createElement("small"); if (kind === "ok") b.className = "code"; b.textContent = sub; t.appendChild(b); }
   s.append(i, t);
   if (kind){ void s.offsetWidth; s.classList.add("pop"); }
-  const cam = $("cam");
-  if (cam && (kind === "ok" || kind === "dup" || kind === "warn")){
-    cam.classList.remove("flash-ok","flash-dup","flash-warn"); void cam.offsetWidth; cam.classList.add("flash-" + kind);
-    clearTimeout(cam._t); cam._t = setTimeout(() => cam.classList.remove("flash-" + kind), 900);
+  // Verde quando dá certo, vermelho quando dá errado.
+  const fl = $("camFlash");
+  if (fl && (kind === "ok" || kind === "dup" || kind === "warn")){
+    fl.className = "flash"; void fl.offsetWidth;
+    fl.className = "flash show " + (kind === "ok" ? "ok" : "bad");
+    $("camFlashIc").textContent = kind === "ok" ? "✓" : "✕";
   }
 }
 // Uma etiqueta pode ter vários códigos (QR, barras). Fica com o que tem a QTD certa de números.
@@ -604,11 +618,10 @@ function beep(freq, dur, times){
   } catch(e){}
 }
 function vib(p){ try { navigator.vibrate && navigator.vibrate(p); } catch(e){} }
-// Sem som: só vibração e a cor da tela.
+// Sem som. Leitura certa: só a borda verde. Vibra apenas quando dá errado.
 function feedback(kind){
-  if (kind === "ok") vib(60);
-  else if (kind === "dup") vib([200,80,200]);
-  else vib([120,60,120]);
+  if (kind === "dup") vib([200,80,200]);
+  else if (kind === "warn") vib([120,60,120]);
 }
 function renderScanHead(){
   const a = active(); if (!a) return;
