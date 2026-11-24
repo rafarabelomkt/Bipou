@@ -310,7 +310,7 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--su
       <input type="search" id="fBusca" placeholder="Buscar número do pacote" inputmode="numeric">
     </div>
     <div id="histList" class="view"></div>
-    <p class="credit">Bipou · Este aplicativo foi criado por Rafael Rabelo</p>
+    <p class="credit">Bipou · Este aplicativo foi criado por Rafael Rabelo<br>versão 5</p>
   </section>
 
   <!-- DETALHE DE UMA LEITURA -->
@@ -697,13 +697,20 @@ function updateEngine(){
   el.classList.toggle("bad", !parts.length && (workerFailed || detector === false));
   el.textContent = parts.length ? "Leitor: " + parts.join(" + ") : (workerFailed ? "Leitor não carregou" : "Carregando leitor…");
 }
+// Reserva: se o leitor básico não carregou do próprio site, busca na internet.
+setTimeout(() => {
+  if (window.ZXing) return;
+  const sc = document.createElement("script");
+  sc.src = "https://unpkg.com/@zxing/library@0.21.3/umd/index.min.js";
+  sc.onload = updateEngine; document.head.appendChild(sc);
+}, 3000);
 setTimeout(() => {
   updateEngine();
   if (!detector && !workerReady && !window.ZXing && !engineWarned){
     engineWarned = true;
-    if (current === "escanear") setStatus("dup", "!", "O leitor de códigos não carregou.", "Feche e abra o app com internet. Se continuar, os arquivos da pasta libs não foram enviados.");
+    if (current === "escanear") setStatus("dup", "!", "O leitor de códigos não carregou.", "Confira a internet, feche o app e abra de novo.");
   }
-}, 8000);
+}, 9000);
 
 function camMessage(text, showPhoto){
   $("camMsg").hidden = false; $("camMsgText").textContent = text; $("btnPhoto").hidden = !showPhoto;
