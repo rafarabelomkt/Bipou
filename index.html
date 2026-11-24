@@ -1,0 +1,884 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}[hidden]{display:none!important}img{max-width:100%}</style>
+</head>
+<body>
+<title>Bipou</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#FFE600">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito+Sans:opsz,wght@6..12,400;6..12,600;6..12,700;6..12,800&family=Roboto+Mono:wght@500;600&display=swap">
+<style>
+/* Layout: app de uma tela, faixa amarela no topo, conteúdo rolável, barra de navegação fixa embaixo.
+   Visual claro de propósito (uso na rua, sob sol), com todas as cores definidas aqui. */
+:root{
+  color-scheme:light;
+  --yellow:#FFE600; --yellow-deep:#F5D800; --blue:#2D3277; --blue-soft:#E8E9F5;
+  --ink:#1F2230; --muted:#666B7A; --line:#E3E4EA; --bg:#F4F4F6; --surface:#FFFFFF;
+  --ok:#00A650; --ok-bg:#E3F6EC; --warn:#B26B00; --warn-bg:#FFF1D6; --err:#E0312B; --err-bg:#FDE7E6;
+  --f-body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-num:"Roboto Mono",ui-monospace,Menlo,Consolas,monospace;
+  --nav-h:64px;
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.45;-webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--yellow)}
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--yellow);padding-block:12px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:10px;box-shadow:0 1px 0 rgba(0,0,0,.08)}
+.top svg{flex:none}
+.top h1{margin:0;font-size:1.15rem;font-weight:800;color:var(--blue);letter-spacing:-.01em}
+.top .sub{margin-left:auto;font-size:.8rem;font-weight:700;color:var(--blue);background:rgba(255,255,255,.55);padding:4px 10px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:50%}
+main{padding-block:16px calc(var(--nav-h) + 24px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:640px;margin:0 auto}
+.view{display:flex;flex-direction:column;gap:16px}
+.card{background:var(--surface);border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:16px;box-shadow:0 1px 2px rgba(31,34,48,.06)}
+h2{margin:0;font-size:1.2rem;font-weight:800;color:var(--ink)}
+.field{display:flex;flex-direction:column;gap:6px}
+.field>span{font-size:.85rem;font-weight:700;color:var(--muted)}
+input[type=text],input[type=number],input[type=search],input[type=date],select{font:600 1.05rem var(--f-body);color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;padding:12px;width:100%;min-height:48px}
+input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 3px var(--blue-soft)}
+.field .err-text{font-size:.82rem;color:var(--err);font-weight:600}
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg button{min-height:48px;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;font:700 .95rem var(--f-body);color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{border-color:var(--blue);background:var(--blue-soft);color:var(--blue)}
+.cities{display:flex;flex-direction:column;gap:8px}
+.city-row{display:flex;gap:8px}
+.city-row button{flex:none;width:48px;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;font-size:1.3rem;color:var(--muted);cursor:pointer}
+.link-btn{align-self:flex-start;border:0;background:none;color:var(--blue);font:700 .95rem var(--f-body);padding:6px 0;cursor:pointer}
+.btn{min-height:52px;border:0;border-radius:8px;font:800 1rem var(--f-body);cursor:pointer;padding:0 18px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn.primary{background:var(--yellow);color:var(--blue)}
+.btn.primary:active{background:var(--yellow-deep)}
+.btn.blue{background:var(--blue);color:#fff}
+.btn.ghost{background:var(--blue-soft);color:var(--blue)}
+.btn.danger{background:var(--err);color:#fff}
+.btn:disabled{opacity:.5}
+.btn:focus-visible,.seg button:focus-visible,.navbtn:focus-visible,.chip:focus-visible,.link-btn:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+.saved-note{font-size:.88rem;color:var(--ok);font-weight:700;text-align:center;min-height:1.3em}
+
+/* Scan */
+.scanhead{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;justify-content:space-between}
+.scanhead .info{font-size:.9rem;color:var(--muted);font-weight:600}
+.scanhead .info b{color:var(--ink)}
+.counter{font-size:.9rem;color:var(--muted);font-weight:700}
+.counter b{font:600 1.6rem var(--f-num);color:var(--blue);font-variant-numeric:tabular-nums;vertical-align:-2px}
+.cam{position:relative;width:100%;aspect-ratio:4/3;max-width:100%;background:#111;border-radius:12px;overflow:hidden}
+.cam video{width:100%;height:100%;object-fit:cover;display:block}
+.cam .frame{position:absolute;left:8%;right:8%;top:28%;bottom:28%;border:3px solid rgba(255,230,0,.9);border-radius:10px;box-shadow:0 0 0 999px rgba(0,0,0,.28)}
+.cam .laser{position:absolute;left:10%;right:10%;top:50%;height:2px;background:#ff3b30;box-shadow:0 0 8px #ff3b30}
+.cam .cam-msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;text-align:center;padding:20px;font-weight:600}
+.status{border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:center;font-weight:700;min-height:64px;background:var(--surface);color:var(--muted)}
+.status .ic{flex:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;background:var(--line)}
+.status .code{font:600 1.15rem var(--f-num);display:block;color:inherit;letter-spacing:.02em}
+.status .txt{display:flex;flex-direction:column;min-width:0}
+.status .txt small{font-weight:600;font-size:.85rem;opacity:.9}
+.status.ok{background:var(--ok-bg);color:#006b34}.status.ok .ic{background:var(--ok)}
+.status.dup{background:var(--err-bg);color:#a3201b}.status.dup .ic{background:var(--err)}
+.status.warn{background:var(--warn-bg);color:#7a4900}.status.warn .ic{background:var(--warn)}
+.status.pop{animation:pop .28s ease-out}
+@keyframes pop{0%{transform:scale(.97)}60%{transform:scale(1.02)}100%{transform:scale(1)}}
+.recent{list-style:none;margin:0;padding:0}
+.recent li{display:flex;justify-content:space-between;padding:8px 0;border-top:1px solid var(--line);font:500 1rem var(--f-num);font-variant-numeric:tabular-nums}
+.recent li:first-child{border-top:0}
+.recent li span:last-child{color:var(--muted);font-size:.85rem}
+.hint{font-size:.85rem;color:var(--muted);margin:0}
+.manual{display:flex;gap:8px}
+.manual input{font-family:var(--f-num)}
+.hidden-input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+
+/* Meus códigos */
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{min-height:40px;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:0 16px;font:700 .92rem var(--f-body);color:var(--muted);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--blue);border-color:var(--blue);color:#fff}
+.datepick{display:flex;gap:8px;align-items:center}
+.group{background:var(--surface);border-radius:12px;box-shadow:0 1px 2px rgba(31,34,48,.06);overflow:hidden}
+.ghead{background:var(--blue);color:#fff;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.ghead .l1{font-weight:800;font-size:1.05rem;display:flex;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.ghead .l1 .n{background:var(--yellow);color:var(--blue);border-radius:999px;padding:0 10px;font-size:.9rem;line-height:1.7}
+.ghead .l2{font-size:.85rem;opacity:.85}
+.gexp{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.gexp .btn{min-height:44px;font-size:.92rem}
+.glist{list-style:none;margin:0;padding:0 16px}
+.glist li{display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid var(--line)}
+.glist li:first-child{border-top:0}
+.glist .num{font:600 1.05rem var(--f-num);font-variant-numeric:tabular-nums;flex:1;min-width:0;overflow-wrap:anywhere}
+.glist .hr{font-size:.82rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.glist .del{border:0;background:none;color:var(--muted);width:40px;height:40px;border-radius:8px;font-size:1.2rem;cursor:pointer}
+.glist .confirm{display:flex;gap:6px}
+.glist .confirm button{min-height:36px;padding:0 10px;border-radius:6px;border:0;font:700 .82rem var(--f-body);cursor:pointer}
+.empty{text-align:center;color:var(--muted);padding:28px 16px;display:flex;flex-direction:column;gap:12px;align-items:center}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;font-size:.92rem;z-index:50;max-width:calc(100% - 32px);text-align:center}
+
+/* Bottom nav */
+nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.navbtn{height:var(--nav-h);border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:700 .78rem var(--f-body);color:var(--muted);cursor:pointer;position:relative}
+.navbtn svg{width:26px;height:26px}
+.navbtn[aria-current="page"]{color:var(--blue)}
+.navbtn[aria-current="page"]::before{content:"";position:absolute;top:0;left:25%;right:25%;height:3px;border-radius:0 0 3px 3px;background:var(--blue)}
+.navbtn.scan .bubble{width:46px;height:46px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;color:var(--blue);margin-top:-18px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
+.navbtn.scan[aria-current="page"]::before{display:none}
+@media (prefers-reduced-motion:reduce){.status.pop{animation:none}}
+</style>
+
+<style>
+.hello{font-size:1.35rem;font-weight:800;margin:0;color:var(--ink);text-wrap:balance}
+.hello-sub{margin:-8px 0 0;color:var(--muted);font-size:.95rem}
+.active-card{background:var(--blue);color:#fff;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:12px}
+.active-card .lbl{font-size:.75rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--yellow)}
+.active-card .ttl{font-size:1.25rem;font-weight:800}
+.active-card .meta{font-size:.9rem;opacity:.85}
+.active-card .big{font:600 2.2rem var(--f-num);line-height:1;font-variant-numeric:tabular-nums}
+.active-card .big small{font:700 .9rem var(--f-body);opacity:.85;margin-left:6px}
+.choice{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.choice .btn{min-height:88px;flex-direction:column;gap:6px;font-size:1rem;border-radius:12px}
+.choice .btn svg{width:28px;height:28px}
+.sess{display:flex;flex-direction:column}
+.sess button{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:14px 0;border-top:1px solid var(--line);align-items:center}
+.sess button:first-child{border-top:0}
+.sess button:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:6px}
+.sess .s1{font-weight:800;font-size:1rem}
+.sess .s2{font-size:.85rem;color:var(--muted);grid-column:1}
+.sess .cnt{grid-row:1/3;grid-column:2;font:600 1.2rem var(--f-num);color:var(--blue);text-align:right;font-variant-numeric:tabular-nums}
+.sess .cnt small{display:block;font:700 .72rem var(--f-body);color:var(--muted)}
+.pill{display:inline-block;font-size:.7rem;font-weight:800;letter-spacing:.04em;text-transform:uppercase;padding:2px 8px;border-radius:999px;margin-left:6px;vertical-align:2px}
+.pill.open{background:var(--ok-bg);color:#006b34}
+.pill.done{background:var(--bg);color:var(--muted)}
+.dayhead{font-size:.8rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin:4px 2px -6px}
+.back{align-self:flex-start;border:0;background:none;color:var(--blue);font:800 .95rem var(--f-body);padding:4px 0;cursor:pointer;display:flex;align-items:center;gap:4px}
+.hdr-table{display:grid;grid-template-columns:auto minmax(0,1fr);gap:6px 16px;font-size:.95rem;margin:0}
+.hdr-table dt{color:var(--muted);font-weight:700}
+.hdr-table dd{margin:0;font-weight:700;overflow-wrap:anywhere}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.earn{background:var(--ok-bg);border-radius:10px;padding:12px 14px;display:flex;flex-direction:column;gap:2px}
+.earn-l{font-size:.85rem;font-weight:700;color:#006b34}
+.earn-v{font:600 1.8rem var(--f-num);color:var(--ok);font-variant-numeric:tabular-nums;line-height:1.2}
+.earn-d{font-size:.8rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.sendbox{display:flex;flex-direction:column;gap:10px;padding:16px;border-bottom:1px solid var(--line)}
+.send-lbl{font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.send-hint{font-size:.8rem;color:var(--muted);text-align:center}
+.dl-row{font-size:.9rem;color:var(--muted);font-weight:600;text-align:center;display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap}
+.dl-row .link-btn{align-self:auto;padding:4px 2px;text-decoration:underline}
+.credit{margin:12px 0 0;text-align:center;font-size:.72rem;color:var(--muted);opacity:.8;letter-spacing:.01em}
+.inline-confirm{background:var(--err-bg);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;color:#7a1712;font-weight:700}
+</style>
+
+<header class="top">
+  <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="7" fill="#2D3277"/><path d="M7 11l8-4 8 4v9l-8 4-8-4z" fill="none" stroke="#FFE600" stroke-width="2" stroke-linejoin="round"/><path d="M7 11l8 4 8-4M15 15v9" fill="none" stroke="#FFE600" stroke-width="2" stroke-linejoin="round"/></svg>
+  <h1>Bipou</h1>
+  <span class="sub" id="topSub" hidden></span>
+</header>
+
+<main>
+  <!-- INÍCIO (tela de abertura) -->
+  <section class="view" id="v-inicio">
+    <p class="hello" id="hello">Bom dia</p>
+    <p class="hello-sub"><span id="helloDate"></span> · <button type="button" class="link-btn" id="btnTrocarNome" style="display:inline;padding:0;font-size:.9rem">Trocar nome</button></p>
+    <div class="active-card" id="activeCard" hidden>
+      <span class="lbl">Leitura em andamento</span>
+      <span class="ttl" id="acTitle"></span>
+      <span class="meta" id="acMeta"></span>
+      <span class="big" id="acCount">0<small>pacotes</small></span>
+      <button class="btn primary" id="btnContinuar">Continuar leitura</button>
+    </div>
+    <div class="choice">
+      <button class="btn primary" id="btnNova">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        Nova leitura</button>
+      <button class="btn ghost" id="btnHist">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+        Ver histórico</button>
+    </div>
+    <div class="card" id="recentSessCard">
+      <h2 style="font-size:1rem">Leituras de hoje e ontem</h2>
+      <div class="sess" id="recentSess"></div>
+    </div>
+  </section>
+
+  <!-- BOAS-VINDAS (primeiro acesso) -->
+  <section class="view" id="v-bemvindo" hidden>
+    <div class="card">
+      <h2 style="font-size:1.5rem">Bem-vindo, motorista!</h2>
+      <p style="margin:-6px 0 0;font-size:1rem;font-weight:600;color:var(--blue)"><b style="font-weight:800">Bipou</b>, o seu app que te auxilia na contagem dos pacotes.</p>
+      <p class="hint" style="font-size:.95rem">Digite seu nome e escolha seu veículo.</p>
+      <label class="field"><span>Seu nome</span><input type="text" id="wNome" autocomplete="name" placeholder="Ex.: João Silva"></label>
+      <label class="field"><span>Seu veículo</span>
+        <select id="wVeiculo"><option>Passeio</option><option>Fiorino</option><option>Van</option><option>VUC</option><option>HR</option></select>
+      </label>
+      <div class="field" id="wErr" hidden><span class="err-text">Digite o seu nome para continuar.</span></div>
+      <button class="btn primary" id="wSalvar">Começar</button>
+    </div>
+  </section>
+
+  <!-- NOVA LEITURA -->
+  <section class="view" id="v-nova" hidden>
+    <button class="back" data-back="inicio">‹ Voltar</button>
+    <div class="card">
+      <h2>Nova leitura</h2>
+      <label class="field"><span>Motorista</span><input type="text" id="fMotorista" autocomplete="name"></label>
+      <label class="field"><span>Veículo</span>
+        <select id="fVeiculo"><option>Passeio</option><option>Fiorino</option><option>Van</option><option>VUC</option><option>HR</option></select>
+      </label>
+      <label class="field"><span>Número da grade</span><input type="text" id="fGrade" placeholder="Ex.: B5" autocapitalize="characters"></label>
+      <label class="field"><span>QTD de números do código de barras</span><input type="number" id="fQtd" inputmode="numeric" min="1" max="60" placeholder="Ex.: 8"></label>
+      <div class="field">
+        <span>Cidade de entrega</span>
+        <div class="seg" role="group" aria-label="Quantidade de cidades">
+          <button type="button" id="segUma" aria-pressed="true">Uma cidade</button>
+          <button type="button" id="segVarias" aria-pressed="false">Mais de uma cidade</button>
+        </div>
+        <div class="cities" id="cities"></div>
+        <button type="button" class="link-btn" id="addCity" hidden>+ Adicionar cidade</button>
+      </div>
+      <div class="field" id="formErr" hidden><span class="err-text" id="formErrText"></span></div>
+      <button class="btn primary" id="btnSalvar">Salvar e começar a ler</button>
+      <p class="hint" id="novaHint"></p>
+    </div>
+  </section>
+
+  <!-- ESCANEAR -->
+  <section class="view" id="v-escanear" hidden>
+    <div class="scanhead">
+      <div class="info" id="scanInfo"></div>
+      <div class="counter">Pacotes nesta leitura: <b id="cntSess">0</b></div>
+    </div>
+    <div class="cam" id="cam">
+      <video id="video" playsinline muted></video>
+      <div class="frame" id="camFrame" hidden></div><div class="laser" id="camLaser" hidden></div>
+      <div class="cam-msg" id="camMsg">
+        <span id="camMsgText">Abrindo a câmera…</span>
+        <button class="btn primary" id="btnPhoto" hidden>Tirar foto do código</button>
+      </div>
+    </div>
+    <input type="file" id="photoIn" class="hidden-input" accept="image/*" capture="environment">
+    <div class="status" id="status" role="status" aria-live="assertive">
+      <span class="ic">•</span><span class="txt">Aponte a câmera para o código do pacote.</span>
+    </div>
+    <div class="card">
+      <h2 style="font-size:1rem">Digitar código</h2>
+      <form class="manual" id="manualForm">
+        <input type="text" id="manualIn" inputmode="numeric" placeholder="Se a etiqueta não ler" autocomplete="off">
+        <button class="btn blue" type="submit">Registrar</button>
+      </form>
+      <p class="hint">Segue as mesmas regras da câmera: quantidade certa de números e sem repetição.</p>
+    </div>
+    <div class="card" id="recentCard" hidden>
+      <h2 style="font-size:1rem">Últimos lidos</h2>
+      <ul class="recent" id="recent"></ul>
+    </div>
+    <button class="btn blue" id="btnEncerrar">Encerrar leitura e exportar</button>
+  </section>
+
+  <!-- MEUS CÓDIGOS (histórico) -->
+  <section class="view" id="v-codigos" hidden>
+    <div class="card" style="gap:12px">
+      <h2>Meus códigos</h2>
+      <div class="chips" role="group" aria-label="Filtrar por data">
+        <button class="chip" data-f="hoje" aria-pressed="true">Hoje</button>
+        <button class="chip" data-f="ontem" aria-pressed="false">Ontem</button>
+        <button class="chip" data-f="data" aria-pressed="false">Escolher data</button>
+        <button class="chip" data-f="todos" aria-pressed="false">Todos</button>
+      </div>
+      <div class="datepick" id="datePick" hidden><input type="date" id="fData"></div>
+      <input type="search" id="fBusca" placeholder="Buscar número do pacote" inputmode="numeric">
+    </div>
+    <div id="histList" class="view"></div>
+    <p class="credit">Bipou · Este aplicativo foi criado por Rafael Rabelo</p>
+  </section>
+
+  <!-- DETALHE DE UMA LEITURA -->
+  <section class="view" id="v-detalhe" hidden>
+    <button class="back" data-back="codigos">‹ Meus códigos</button>
+    <div class="group">
+      <div class="ghead">
+        <div class="l1"><span id="dTitle"></span><span class="n" id="dCount"></span></div>
+        <div class="l2" id="dSub"></div>
+      </div>
+      <div style="padding:16px;display:flex;flex-direction:column;gap:12px;border-bottom:1px solid var(--line)">
+        <dl class="hdr-table" id="dHdr"></dl>
+        <div class="earn" id="dEarn" hidden><span class="earn-l">Valor estimado a receber por estes pacotes</span><span class="earn-v" id="dEarnV"></span><span class="earn-d" id="dEarnD"></span></div>
+        <p class="hint" id="dEarnNone" hidden></p>
+      </div>
+      <div class="sendbox">
+        <span class="send-lbl">Enviar relatório</span>
+        <button class="btn primary" id="dXlsx"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v12M7 8l5-5 5 5"/></svg>Enviar Excel</button>
+        <button class="btn ghost" id="dTxt"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7"/><path d="M12 3v12M7 8l5-5 5 5"/></svg>Enviar TXT</button>
+        <span class="send-hint">Abre a opção de compartilhar do celular: WhatsApp, e-mail, Drive.</span>
+        <span class="dl-row">⬇ Só baixar no celular: <button type="button" class="link-btn" id="dDlXlsx">Excel</button> · <button type="button" class="link-btn" id="dDlTxt">TXT</button></span>
+      </div>
+      <div style="padding:12px 16px 0" id="dContWrap"><button class="btn blue" id="dCont" style="width:100%">Continuar esta leitura</button></div>
+      <div style="padding:12px 16px 0"><input type="search" id="dBusca" placeholder="Buscar número nesta leitura" inputmode="numeric"></div>
+      <ul class="glist" id="dList"></ul>
+      <div style="padding:16px;border-top:1px solid var(--line)" id="dDelWrap">
+        <button class="btn" id="dDel" style="width:100%;background:var(--bg);color:var(--err)">Apagar leitura inteira</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<nav class="bottom" aria-label="Navegação">
+  <button class="navbtn" data-v="inicio" aria-current="page">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Início</button>
+  <button class="navbtn scan" data-v="escanear">
+    <span class="bubble"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3"/><path d="M7 9v6M10 9v6M13 9v6M16 9v6"/></svg></span>Escanear</button>
+  <button class="navbtn" data-v="codigos">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Meus códigos</button>
+</nav>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="libs/zxing.min.js"></script>
+<script src="libs/xlsx.mini.min.js"></script>
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+const APP = "Bipou";
+
+/* ---------- Armazenamento ----------
+   sessions: cada leitura (contagem) com o seu cabeçalho.
+   scans: cada pacote lido, ligado a uma leitura (sid). */
+const store = {
+  get(k, d){ try { const v = localStorage.getItem(k); return v == null ? d : JSON.parse(v); } catch(e){ return d; } },
+  set(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch(e){ return false; } }
+};
+let sessions = store.get("xpt-sessions", []); if (!Array.isArray(sessions)) sessions = [];
+let scans = store.get("xpt-scans2", []); if (!Array.isArray(scans)) scans = [];
+let activeId = store.get("xpt-active", null);
+let lastCfg = store.get("xpt-lastcfg", {motorista:"", veiculo:"Passeio", grade:"", qtd:"", cidades:["Porto Nacional"]});
+let codeMap = new Map(scans.map(s => [s.code, s]));
+const persist = () => {
+  const ok = store.set("xpt-sessions", sessions) && store.set("xpt-scans2", scans) && store.set("xpt-active", activeId);
+  if (!ok) toast("Atenção: não foi possível salvar no aparelho.");
+};
+const rebuild = () => { codeMap = new Map(scans.map(s => [s.code, s])); };
+const sessById = id => sessions.find(s => s.id === id) || null;
+const scansOf = id => scans.filter(s => s.sid === id);
+const active = () => { const s = sessById(activeId); return s && !s.done ? s : null; };
+
+const pad = n => String(n).padStart(2, "0");
+const dayKey = d => d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+const fmtDay = k => { const [y,m,d] = k.split("-"); return d + "/" + m + "/" + y; };
+const fmtTime = ts => { const d = new Date(ts); return pad(d.getHours()) + ":" + pad(d.getMinutes()); };
+const today = () => dayKey(new Date());
+const yesterday = () => { const d = new Date(); d.setDate(d.getDate()-1); return dayKey(d); };
+const dayLabel = k => k === today() ? "Hoje" : k === yesterday() ? "Ontem" : fmtDay(k);
+const plural = n => n + (n === 1 ? " pacote" : " pacotes");
+
+let toastT;
+function toast(msg){ const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2600); }
+
+/* ---------- Navegação ---------- */
+let current = "inicio", detailId = null;
+const views = ["bemvindo","inicio","nova","escanear","codigos","detalhe"];
+const navOf = {bemvindo:"inicio", inicio:"inicio", nova:"inicio", escanear:"escanear", codigos:"codigos", detalhe:"codigos"};
+function go(v){
+  if (v === "escanear" && !active()){
+    v = "nova"; setTimeout(() => showFormErr("Para escanear, comece uma nova leitura."), 0);
+  }
+  if (!lastCfg.motorista && v !== "bemvindo") v = "bemvindo";
+  current = v;
+  if (v === "bemvindo"){ $("wNome").value = lastCfg.motorista || ""; $("wVeiculo").value = lastCfg.veiculo || "Passeio"; $("wErr").hidden = true; }
+  views.forEach(x => $("v-" + x).hidden = x !== v);
+  document.querySelectorAll(".navbtn").forEach(b => b.dataset.v === navOf[v] ? b.setAttribute("aria-current","page") : b.removeAttribute("aria-current"));
+  window.scrollTo(0,0);
+  if (v === "escanear"){ renderScanHead(); startCamera(); } else stopCamera();
+  if (v === "inicio") renderHome();
+  if (v === "nova") fillForm();
+  if (v === "codigos") renderHist();
+  if (v === "detalhe") renderDetail();
+  renderTopSub();
+}
+document.querySelectorAll(".navbtn").forEach(b => b.addEventListener("click", () => go(b.dataset.v)));
+document.querySelectorAll("[data-back]").forEach(b => b.addEventListener("click", () => go(b.dataset.back)));
+function renderTopSub(){ const s = $("topSub"), a = active(); if (a){ s.textContent = "Grade " + a.grade; s.hidden = false; } else s.hidden = true; }
+
+/* ---------- Início ---------- */
+function sessButton(s){
+  const n = scansOf(s.id).length;
+  const b = document.createElement("button");
+  const s1 = document.createElement("span"); s1.className = "s1"; s1.textContent = "Grade " + s.grade;
+  const p = document.createElement("span"); p.className = "pill " + (s.done ? "done" : "open"); p.textContent = s.done ? "Encerrada" : "Em andamento"; s1.appendChild(p);
+  const s2 = document.createElement("span"); s2.className = "s2"; s2.textContent = dayLabel(s.day) + " · " + fmtTime(s.createdAt) + " · " + s.cidades.join(", ");
+  const c = document.createElement("span"); c.className = "cnt"; c.textContent = n; const sm = document.createElement("small"); sm.textContent = n === 1 ? "pacote" : "pacotes"; c.appendChild(sm);
+  b.append(s1, s2, c);
+  b.addEventListener("click", () => { detailId = s.id; go("detalhe"); });
+  return b;
+}
+function renderHome(){
+  const h = new Date().getHours();
+  $("hello").textContent = (h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite") + (lastCfg.motorista ? ", " + lastCfg.motorista.split(" ")[0] : "") + ".";
+  $("helloDate").textContent = new Date().toLocaleDateString("pt-BR", {weekday:"long", day:"numeric", month:"long"});
+  const a = active();
+  $("activeCard").hidden = !a;
+  if (a){
+    $("acTitle").textContent = "Grade " + a.grade;
+    $("acMeta").textContent = dayLabel(a.day) + " · iniciada às " + fmtTime(a.createdAt) + " · " + a.cidades.join(", ");
+    const n = scansOf(a.id).length;
+    $("acCount").firstChild.nodeValue = n;
+    $("acCount").lastChild.textContent = n === 1 ? "pacote" : "pacotes";
+  }
+  const box = $("recentSess"); box.textContent = "";
+  const td = today(), yd = yesterday();
+  const list = sessions.filter(s => s.day === td || s.day === yd).sort((x, y) => y.createdAt - x.createdAt);
+  if (!list.length){ const p = document.createElement("p"); p.className = "hint"; p.textContent = "Nenhuma leitura hoje ou ontem. Toque em Nova leitura para começar."; box.appendChild(p); }
+  list.forEach(s => box.appendChild(sessButton(s)));
+}
+$("btnContinuar").addEventListener("click", () => go("escanear"));
+$("btnNova").addEventListener("click", () => go("nova"));
+$("btnHist").addEventListener("click", () => go("codigos"));
+
+/* ---------- Boas-vindas: nome de quem usa este celular ---------- */
+$("wSalvar").addEventListener("click", () => {
+  const nome = $("wNome").value.trim().replace(/\s+/g, " ");
+  if (!nome){ $("wErr").hidden = false; $("wNome").focus(); return; }
+  lastCfg = Object.assign({}, lastCfg, {motorista: nome, veiculo: $("wVeiculo").value});
+  store.set("xpt-lastcfg", lastCfg);
+  go("inicio");
+});
+$("wNome").addEventListener("keydown", e => { if (e.key === "Enter") $("wSalvar").click(); });
+$("btnTrocarNome").addEventListener("click", () => go("bemvindo"));
+
+/* ---------- Nova leitura ---------- */
+let multi = false;
+function cityRow(val){
+  const row = document.createElement("div"); row.className = "city-row";
+  const inp = document.createElement("input"); inp.type = "text"; inp.className = "cityIn"; inp.placeholder = "Nome da cidade"; inp.value = val || "";
+  row.appendChild(inp);
+  if (multi){
+    const x = document.createElement("button"); x.type = "button"; x.textContent = "×"; x.setAttribute("aria-label","Remover cidade");
+    x.addEventListener("click", () => { if (document.querySelectorAll(".cityIn").length > 2) row.remove(); else inp.value = ""; });
+    row.appendChild(x);
+  }
+  return row;
+}
+function renderCities(list){
+  const box = $("cities"); box.textContent = "";
+  const vals = list && list.length ? list.slice() : [""];
+  if (multi) while (vals.length < 2) vals.push("");
+  (multi ? vals : vals.slice(0,1)).forEach(v => box.appendChild(cityRow(v)));
+  $("addCity").hidden = !multi;
+  $("segUma").setAttribute("aria-pressed", String(!multi));
+  $("segVarias").setAttribute("aria-pressed", String(multi));
+}
+const currentCities = () => [...document.querySelectorAll(".cityIn")].map(i => i.value.trim()).filter(Boolean);
+$("segUma").addEventListener("click", () => { multi = false; renderCities(currentCities()); });
+$("segVarias").addEventListener("click", () => { multi = true; renderCities(currentCities()); });
+$("addCity").addEventListener("click", () => { const r = cityRow(""); $("cities").appendChild(r); r.querySelector("input").focus(); });
+function showFormErr(t){ $("formErr").hidden = !t; $("formErrText").textContent = t || ""; }
+function fillForm(){
+  const c = lastCfg;
+  $("fMotorista").value = c.motorista || ""; $("fVeiculo").value = c.veiculo || "Passeio"; $("fGrade").value = ""; $("fQtd").value = c.qtd || "";
+  multi = (c.cidades || []).length > 1; renderCities(c.cidades);
+  showFormErr("");
+  const a = active();
+  $("novaHint").textContent = a ? "A leitura em andamento (grade " + a.grade + ") será encerrada e continuará salva no histórico." : "Motorista, veículo, QTD e cidade vêm da última leitura. Confira antes de salvar.";
+  setTimeout(() => $("fGrade").focus(), 50);
+}
+$("btnSalvar").addEventListener("click", () => {
+  const c = {
+    motorista: $("fMotorista").value.trim(), veiculo: $("fVeiculo").value,
+    grade: $("fGrade").value.trim().toUpperCase(), qtd: parseInt($("fQtd").value, 10),
+    cidades: currentCities()
+  };
+  if (!c.motorista) return showFormErr("Preencha o nome do motorista.");
+  if (!c.grade) return showFormErr("Preencha o número da grade.");
+  if (!(c.qtd >= 1 && c.qtd <= 60)) return showFormErr("Preencha a QTD de números do código de barras.");
+  if (!c.cidades.length) return showFormErr("Preencha a cidade de entrega.");
+  if (multi && c.cidades.length < 2) return showFormErr("Preencha pelo menos duas cidades, ou escolha \"Uma cidade\".");
+  showFormErr("");
+  const a = active(); if (a) a.done = true;
+  const now = Date.now();
+  const s = Object.assign({id: "L" + now.toString(36), createdAt: now, day: today(), done: false}, c);
+  sessions.push(s); activeId = s.id;
+  lastCfg = {motorista:c.motorista, veiculo:c.veiculo, grade:c.grade, qtd:c.qtd, cidades:c.cidades};
+  store.set("xpt-lastcfg", lastCfg); persist();
+  lastOk = {code:null, at:0}; lastShown = {code:null, at:0};
+  setStatus("", "•", "Aponte a câmera para o código do pacote.", "");
+  go("escanear");
+});
+
+/* ---------- Regras de leitura ---------- */
+function extractCode(raw){
+  let t = String(raw || "").trim();
+  if (t.startsWith("{")){ try { const o = JSON.parse(t); if (o && o.id != null) t = String(o.id); } catch(e){} }
+  return t.replace(/\s+/g, "");
+}
+let lastOk = {code:null, at:0}, lastShown = {code:null, at:0};
+function handleCode(raw, source){
+  const a = active(); if (!a) return false;
+  const code = extractCode(raw);
+  if (!code) return false;
+  const now = Date.now();
+  // A câmera vê o mesmo código várias vezes por segundo: ignora repetições imediatas.
+  if (source === "cam"){
+    if (code === lastOk.code && now - lastOk.at < 4000) return;
+    if (code === lastShown.code && now - lastShown.at < 2500) return;
+  }
+  lastShown = {code, at:now};
+  if (code.length !== a.qtd){
+    const less = code.length < a.qtd;
+    setStatus("warn", "!", less ? "Código incompleto. Leia de novo." : "Código com números a mais.", code + " · " + code.length + " de " + a.qtd + " números");
+    feedback("warn"); return false;
+  }
+  if (codeMap.has(code)){
+    const prev = codeMap.get(code), ps = sessById(prev.sid);
+    setStatus("dup", "×", "Este código já foi registrado.", code + " · " + dayLabel(prev.day) + " às " + fmtTime(prev.at) + (ps ? " (grade " + ps.grade + ")" : ""));
+    feedback("dup"); return false;
+  }
+  const rec = {code, at:now, day:today(), sid:a.id};
+  scans.push(rec); codeMap.set(code, rec); persist();
+  lastOk = {code, at:now};
+  setStatus("ok", "✓", "Pacote registrado", code);
+  feedback("ok"); renderScanHead();
+  return true;
+}
+function setStatus(kind, ic, title, sub){
+  const s = $("status"); s.className = "status " + kind; s.textContent = "";
+  const i = document.createElement("span"); i.className = "ic"; i.textContent = ic;
+  const t = document.createElement("span"); t.className = "txt";
+  const x = document.createElement("span"); x.textContent = title; t.appendChild(x);
+  if (sub){ const b = document.createElement("small"); if (kind === "ok") b.className = "code"; b.textContent = sub; t.appendChild(b); }
+  s.append(i, t);
+  if (kind){ void s.offsetWidth; s.classList.add("pop"); }
+}
+let actx = null;
+function beep(freq, dur, times){
+  try {
+    actx = actx || new (window.AudioContext || window.webkitAudioContext)();
+    if (actx.state === "suspended") actx.resume();
+    for (let k = 0; k < times; k++){
+      const o = actx.createOscillator(), g = actx.createGain(), t0 = actx.currentTime + k * (dur + 0.06);
+      o.frequency.value = freq; o.type = "square"; g.gain.setValueAtTime(0.12, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+      o.connect(g).connect(actx.destination); o.start(t0); o.stop(t0 + dur);
+    }
+  } catch(e){}
+}
+function vib(p){ try { navigator.vibrate && navigator.vibrate(p); } catch(e){} }
+function feedback(kind){
+  if (kind === "ok"){ beep(1600, 0.09, 1); vib(60); }
+  else if (kind === "dup"){ beep(320, 0.18, 2); vib([200,80,200]); }
+  else { beep(600, 0.15, 1); vib([120,60,120]); }
+}
+function renderScanHead(){
+  const a = active(); if (!a) return;
+  const info = $("scanInfo"); info.textContent = "";
+  [["Grade ", a.grade], [" · ", a.cidades.join(", ")]].forEach(([l, v]) => { info.append(l); const b = document.createElement("b"); b.textContent = v; info.append(b); });
+  const mine = scansOf(a.id);
+  $("cntSess").textContent = mine.length;
+  const rc = $("recent"); rc.textContent = "";
+  mine.slice(-5).reverse().forEach(s => { const li = document.createElement("li"); const x = document.createElement("span"); x.textContent = s.code; const y = document.createElement("span"); y.textContent = fmtTime(s.at); li.append(x, y); rc.appendChild(li); });
+  $("recentCard").hidden = !mine.length;
+}
+$("manualForm").addEventListener("submit", e => { e.preventDefault(); const v = $("manualIn").value; if (!v.trim()) return; if (handleCode(v, "manual") !== false) $("manualIn").value = ""; });
+$("btnEncerrar").addEventListener("click", () => {
+  const a = active(); if (!a) return;
+  a.done = true; activeId = null; persist();
+  detailId = a.id; go("detalhe");
+  toast("Leitura encerrada. Exporte o arquivo abaixo.");
+});
+
+/* ---------- Câmera ---------- */
+const video = $("video");
+let stream = null, loopT = null, detector = null, zreader = null, busy = false, wake = null;
+const workCanvas = document.createElement("canvas");
+function getZReader(tryHarder){
+  if (!window.ZXing) return null;
+  const hints = new Map(), F = ZXing.BarcodeFormat;
+  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [F.QR_CODE, F.CODE_128, F.EAN_13, F.EAN_8, F.UPC_A, F.ITF, F.CODE_39, F.CODE_93, F.CODABAR, F.DATA_MATRIX]);
+  if (tryHarder) hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+  const r = new ZXing.MultiFormatReader(); r.setHints(hints); return r;
+}
+async function initDetector(){
+  if (detector !== null) return;
+  detector = false;
+  try {
+    if ("BarcodeDetector" in window){
+      const want = ["qr_code","code_128","ean_13","ean_8","upc_a","itf","code_39","code_93","codabar","data_matrix"];
+      const sup = await BarcodeDetector.getSupportedFormats();
+      const f = want.filter(x => sup.includes(x));
+      if (f.length) detector = new BarcodeDetector({formats:f});
+    }
+  } catch(e){ detector = false; }
+}
+function zxingFromCanvas(c, tryHarder){
+  const r = tryHarder ? getZReader(true) : (zreader = zreader || getZReader(false));
+  if (!r) return null;
+  try {
+    const bb = new ZXing.BinaryBitmap(new ZXing.HybridBinarizer(new ZXing.HTMLCanvasElementLuminanceSource(c)));
+    return r.decode(bb).getText();
+  } catch(e){ return null; }
+}
+function camMessage(text, showPhoto){
+  $("camMsg").hidden = false; $("camMsgText").textContent = text; $("btnPhoto").hidden = !showPhoto;
+  $("camFrame").hidden = $("camLaser").hidden = true;
+}
+async function startCamera(){
+  if (stream) return;
+  await initDetector();
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ camMessage("Este navegador não libera a câmera ao vivo. Use a foto.", true); return; }
+  camMessage("Abrindo a câmera…", false);
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}, width:{ideal:1280}, height:{ideal:720}}, audio:false});
+    if (current !== "escanear"){ stopCamera(); return; }
+    video.srcObject = stream; await video.play();
+    $("camMsg").hidden = true; $("camFrame").hidden = $("camLaser").hidden = false;
+    try { wake = await navigator.wakeLock.request("screen"); } catch(e){ wake = null; }
+    loopT = setInterval(tick, 180);
+  } catch(e){
+    stream = null;
+    camMessage(e && e.name === "NotAllowedError" ? "A câmera está bloqueada. Libere a câmera nas permissões do navegador, ou use a foto." : "Não foi possível abrir a câmera aqui. Use a foto.", true);
+  }
+}
+function stopCamera(){
+  clearInterval(loopT); loopT = null;
+  if (stream){ stream.getTracks().forEach(t => t.stop()); stream = null; }
+  video.srcObject = null;
+  if (wake){ try { wake.release(); } catch(e){} wake = null; }
+}
+async function tick(){
+  if (busy || !stream || video.readyState < 2) return;
+  busy = true;
+  try {
+    let text = null;
+    if (detector){
+      const r = await detector.detect(video);
+      if (r && r.length) text = r[0].rawValue;
+    } else {
+      const vw = video.videoWidth, vh = video.videoHeight;
+      if (vw){
+        const scale = Math.min(1, 960 / vw);
+        workCanvas.width = Math.round(vw*scale); workCanvas.height = Math.round(vh*scale);
+        workCanvas.getContext("2d", {willReadFrequently:true}).drawImage(video, 0, 0, workCanvas.width, workCanvas.height);
+        text = zxingFromCanvas(workCanvas, false);
+      }
+    }
+    if (text) handleCode(text, "cam");
+  } catch(e){} finally { busy = false; }
+}
+document.addEventListener("visibilitychange", () => { if (document.hidden) stopCamera(); else if (current === "escanear") startCamera(); });
+
+$("btnPhoto").addEventListener("click", () => $("photoIn").click());
+$("photoIn").addEventListener("change", async () => {
+  const f = $("photoIn").files[0]; $("photoIn").value = ""; if (!f) return;
+  setStatus("", "…", "Lendo a foto…", "");
+  const url = URL.createObjectURL(f);
+  try {
+    const img = new Image(); img.src = url; await img.decode();
+    let text = null;
+    if (detector){ try { const r = await detector.detect(img); if (r.length) text = r[0].rawValue; } catch(e){} }
+    if (!text){
+      const scale = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+      workCanvas.width = Math.round(img.naturalWidth*scale); workCanvas.height = Math.round(img.naturalHeight*scale);
+      workCanvas.getContext("2d", {willReadFrequently:true}).drawImage(img, 0, 0, workCanvas.width, workCanvas.height);
+      text = zxingFromCanvas(workCanvas, true);
+    }
+    if (text) handleCode(text, "photo");
+    else { setStatus("warn", "!", "Nenhum código encontrado na foto.", "Tire de novo, mais de perto e com o código nítido."); feedback("warn"); }
+  } catch(e){ setStatus("warn", "!", "Não foi possível abrir a foto.", "Tente de novo."); }
+  finally { URL.revokeObjectURL(url); }
+});
+
+/* ---------- Meus códigos (histórico) ---------- */
+let filtro = "hoje";
+document.querySelectorAll(".chip").forEach(c => c.addEventListener("click", () => {
+  filtro = c.dataset.f;
+  document.querySelectorAll(".chip").forEach(x => x.setAttribute("aria-pressed", String(x === c)));
+  $("datePick").hidden = filtro !== "data";
+  if (filtro === "data" && !$("fData").value) $("fData").value = yesterday();
+  renderHist();
+}));
+$("fData").addEventListener("input", renderHist);
+$("fBusca").addEventListener("input", renderHist);
+function renderHist(){
+  const box = $("histList"); box.textContent = "";
+  const q = $("fBusca").value.replace(/\s+/g, "");
+  let list = sessions.slice();
+  if (filtro === "hoje") list = list.filter(s => s.day === today());
+  else if (filtro === "ontem") list = list.filter(s => s.day === yesterday());
+  else if (filtro === "data") list = list.filter(s => s.day === $("fData").value);
+  if (q){ const hit = new Set(scans.filter(x => x.code.includes(q)).map(x => x.sid)); list = list.filter(s => hit.has(s.id)); }
+  list.sort((a, b) => b.createdAt - a.createdAt);
+  if (!list.length){
+    const e = document.createElement("div"); e.className = "card empty";
+    const p = document.createElement("span");
+    p.textContent = q ? "Nenhuma leitura tem esse número." : filtro === "hoje" ? "Nenhuma leitura hoje ainda." : filtro === "ontem" ? "Nenhuma leitura ontem." : filtro === "data" ? "Nenhuma leitura nesta data." : "Nenhuma leitura salva ainda.";
+    e.appendChild(p);
+    if (!q && filtro === "hoje"){ const b = document.createElement("button"); b.className = "btn primary"; b.textContent = "Nova leitura"; b.addEventListener("click", () => go("nova")); e.appendChild(b); }
+    box.appendChild(e); return;
+  }
+  let lastDay = null, card = null, wrap = null;
+  list.forEach(s => {
+    if (s.day !== lastDay){
+      lastDay = s.day;
+      const dh = document.createElement("div"); dh.className = "dayhead";
+      const n = list.filter(x => x.day === s.day).reduce((t, x) => t + scansOf(x.id).length, 0);
+      dh.textContent = dayLabel(s.day) + (dayLabel(s.day) !== fmtDay(s.day) ? " · " + fmtDay(s.day) : "") + " · " + plural(n);
+      box.appendChild(dh);
+      card = document.createElement("div"); card.className = "card"; card.style.padding = "4px 18px";
+      wrap = document.createElement("div"); wrap.className = "sess"; card.appendChild(wrap); box.appendChild(card);
+    }
+    wrap.appendChild(sessButton(s));
+  });
+}
+
+/* ---------- Detalhe de uma leitura ---------- */
+let delArmed = false;
+$("dBusca").addEventListener("input", renderDetailList);
+function renderDetail(){
+  const s = sessById(detailId); if (!s){ go("codigos"); return; }
+  const items = scansOf(s.id);
+  $("dTitle").textContent = dayLabel(s.day) + " · Grade " + s.grade;
+  $("dCount").textContent = plural(items.length);
+  $("dSub").textContent = (s.done ? "Encerrada" : "Em andamento") + " · iniciada às " + fmtTime(s.createdAt);
+  const dl = $("dHdr"); dl.textContent = "";
+  headerPairs(s, items.length).forEach(([k, v]) => { const dt = document.createElement("dt"); dt.textContent = k; const dd = document.createElement("dd"); dd.textContent = v; dl.append(dt, dd); });
+  // Valor estimado: só aparece na tela, não vai para a exportação.
+  const e = estimate(s.veiculo, items.length);
+  $("dEarn").hidden = !e; $("dEarnNone").hidden = !!e;
+  if (e){ $("dEarnV").textContent = brl(e.total); $("dEarnD").textContent = e.parts.join(" + "); }
+  else $("dEarnNone").textContent = "O veículo " + s.veiculo + " não tem valor por pacote na tabela.";
+  $("dContWrap").hidden = s.id === activeId && !s.done ? false : s.day !== today();
+  $("dCont").textContent = s.id === activeId && !s.done ? "Voltar a escanear" : "Continuar esta leitura";
+  $("dBusca").value = ""; delArmed = false; renderDelete();
+  renderDetailList();
+}
+function renderDetailList(){
+  const s = sessById(detailId); if (!s) return;
+  const q = $("dBusca").value.replace(/\s+/g, "");
+  const ul = $("dList"); ul.textContent = "";
+  const items = scansOf(s.id).filter(x => !q || x.code.includes(q)).reverse();
+  if (!items.length){ const li = document.createElement("li"); li.className = "hr"; li.textContent = q ? "Nenhum número encontrado." : "Nenhum pacote lido nesta leitura."; ul.appendChild(li); }
+  items.forEach(x => ul.appendChild(itemRow(x)));
+}
+function itemRow(x){
+  const li = document.createElement("li");
+  const num = document.createElement("span"); num.className = "num"; num.textContent = x.code;
+  const hr = document.createElement("span"); hr.className = "hr"; hr.textContent = fmtTime(x.at);
+  const del = document.createElement("button"); del.className = "del"; del.textContent = "🗑"; del.setAttribute("aria-label", "Apagar " + x.code);
+  del.addEventListener("click", () => {
+    const c = document.createElement("span"); c.className = "confirm";
+    const y = document.createElement("button"); y.textContent = "Apagar"; y.style.background = "var(--err)"; y.style.color = "#fff";
+    const n = document.createElement("button"); n.textContent = "Cancelar"; n.style.background = "var(--bg)"; n.style.color = "var(--ink)";
+    y.addEventListener("click", () => { scans = scans.filter(z => z !== x); rebuild(); persist(); renderDetail(); toast("Pacote " + x.code + " apagado."); });
+    n.addEventListener("click", () => { c.replaceWith(del); hr.hidden = false; });
+    c.append(y, n); hr.hidden = true; del.replaceWith(c);
+  });
+  li.append(num, hr, del); return li;
+}
+$("dCont").addEventListener("click", () => {
+  const s = sessById(detailId); if (!s) return;
+  const a = active(); if (a && a.id !== s.id) a.done = true;
+  s.done = false; activeId = s.id; persist();
+  lastOk = {code:null, at:0}; lastShown = {code:null, at:0};
+  setStatus("", "•", "Aponte a câmera para o código do pacote.", "");
+  go("escanear");
+});
+function renderDelete(){
+  const w = $("dDelWrap"); w.textContent = "";
+  if (!delArmed){
+    const b = document.createElement("button"); b.className = "btn"; b.style.cssText = "width:100%;background:var(--bg);color:var(--err)"; b.textContent = "Apagar leitura inteira";
+    b.addEventListener("click", () => { delArmed = true; renderDelete(); }); w.appendChild(b); return;
+  }
+  const s = sessById(detailId), n = scansOf(detailId).length;
+  const box = document.createElement("div"); box.className = "inline-confirm";
+  const t = document.createElement("span"); t.textContent = "Apagar a leitura da grade " + s.grade + " com " + plural(n) + "? Isso não pode ser desfeito, e esses números poderão ser lidos de novo.";
+  const r = document.createElement("div"); r.className = "row2";
+  const y = document.createElement("button"); y.className = "btn danger"; y.textContent = "Apagar";
+  const c = document.createElement("button"); c.className = "btn ghost"; c.textContent = "Cancelar";
+  y.addEventListener("click", () => {
+    scans = scans.filter(x => x.sid !== detailId); sessions = sessions.filter(x => x.id !== detailId);
+    if (activeId === detailId) activeId = null;
+    rebuild(); persist(); toast("Leitura apagada."); go("codigos");
+  });
+  c.addEventListener("click", () => { delArmed = false; renderDelete(); });
+  r.append(y, c); box.append(t, r); w.appendChild(box);
+}
+
+/* ---------- Valor por pacote (tabela de veículos) ----------
+   Por faixa: do 1º ao 60º pacote R$ 0,24 cada; do 61º ao 90º R$ 0,56; do 91º em diante R$ 0,32.
+   Só Passeio e Fiorino têm valor por pacote na tabela. */
+const RATES = {Passeio:[0.24,0.56,0.32], Fiorino:[0.24,0.56,0.32]};
+const brl = v => v.toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
+function estimate(veiculo, n){
+  const r = RATES[veiculo]; if (!r) return null;
+  const a = Math.min(n, 60), b = Math.min(Math.max(n - 60, 0), 30), c = Math.max(n - 90, 0);
+  const parts = [];
+  [[a, r[0]], [b, r[1]], [c, r[2]]].forEach(([q, v]) => { if (q) parts.push(q + " × " + brl(v)); });
+  return {total: Math.round((a*r[0] + b*r[1] + c*r[2]) * 100) / 100, parts: parts.length ? parts : ["0 pacotes"]};
+}
+
+/* ---------- Exportar ---------- */
+function headerPairs(s, total){
+  return [
+    ["Motorista", s.motorista], ["Veículo", s.veiculo], ["Grade", s.grade],
+    [s.cidades.length > 1 ? "Cidades" : "Cidade", s.cidades.join(", ")],
+    ["Data", fmtDay(s.day)], ["Total de pacotes", String(total)]
+  ];
+}
+const clean = t => String(t || "").normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^A-Za-z0-9-]/g, "");
+const fileBase = s => (clean((s.motorista || "").split(" ")[0]) || "Bipou") + "_" + clean(s.grade) + "_" + fmtDay(s.day).replace(/\//g, "-") + "_" + fmtTime(s.createdAt).replace(":", "h");
+const shareText = s => "Bipou · " + s.motorista + " · Grade " + s.grade + " · " + fmtDay(s.day) + " · " + plural(scansOf(s.id).length);
+function exportTxt(s, mode){
+  const items = scansOf(s.id);
+  const lines = [APP].concat(headerPairs(s, items.length).map(([k, v]) => k + ": " + v));
+  const txt = lines.join("\r\n") + "\r\n------------------------\r\n" + items.map(x => x.code).join("\r\n") + "\r\n";
+  deliver(fileBase(s) + ".txt", new Blob(["﻿" + txt], {type:"text/plain;charset=utf-8"}), mode, shareText(s));
+}
+function exportXlsx(s, mode){
+  if (!window.XLSX){ toast("O Excel ainda está carregando. Tente de novo."); return; }
+  const items = scansOf(s.id);
+  const rows = [[APP]].concat(headerPairs(s, items.length).map(([k, v]) => [k, k === "Total de pacotes" ? items.length : v]));
+  rows.push([], ["Pacotes"]);
+  const first = rows.length;
+  items.forEach(x => rows.push([x.code]));
+  const ws = XLSX.utils.aoa_to_sheet(rows);
+  for (let i = first; i < rows.length; i++){ const ref = XLSX.utils.encode_cell({r:i, c:0}); if (ws[ref]){ ws[ref].t = "s"; ws[ref].v = String(rows[i][0]); } }
+  ws["!cols"] = [{wch:22}, {wch:30}];
+  const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, ("Grade " + s.grade).slice(0, 31));
+  const out = XLSX.write(wb, {bookType:"xlsx", type:"array"});
+  deliver(fileBase(s) + ".xlsx", new Blob([out], {type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"}), mode, shareText(s));
+}
+$("dXlsx").addEventListener("click", () => { const s = sessById(detailId); if (s) exportXlsx(s, "share"); });
+$("dTxt").addEventListener("click", () => { const s = sessById(detailId); if (s) exportTxt(s, "share"); });
+$("dDlXlsx").addEventListener("click", () => { const s = sessById(detailId); if (s) exportXlsx(s, "download"); });
+$("dDlTxt").addEventListener("click", () => { const s = sessById(detailId); if (s) exportTxt(s, "download"); });
+let downloadsCap = null;
+if (window.claude && typeof window.claude.use === "function") window.claude.use("downloads").then(d => { downloadsCap = d; }).catch(() => {});
+async function deliver(name, blob, mode, text){
+  if (downloadsCap){
+    try { await downloadsCap.save({filename:name, data:blob}); toast("Arquivo salvo: " + name); }
+    catch(e){ toast(e && e.code === "declined" ? "Download cancelado." : "Não foi possível salvar o arquivo."); }
+    return;
+  }
+  // Enviar: abre a janela de compartilhar do aparelho (WhatsApp, e-mail, Drive...).
+  let shareFailed = false;
+  if (mode === "share"){
+    try {
+      const file = new File([blob], name, {type:blob.type});
+      if (navigator.canShare && navigator.canShare({files:[file]})){
+        await navigator.share({files:[file], title:name, text:text || name}); return;
+      }
+      shareFailed = true;
+    } catch(e){ if (e && e.name === "AbortError") return; shareFailed = true; }
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 4000);
+  toast(shareFailed ? "Este aparelho não abriu o compartilhar. O arquivo foi baixado: " + name : "Arquivo baixado: " + name);
+}
+
+/* ---------- Abertura ---------- */
+go("inicio");
+window.__xpt = {handleCode: v => handleCode(v, "manual")};
+if ("serviceWorker" in navigator && location.protocol === "https:" && !window.claude){
+  navigator.serviceWorker.register("sw.js").catch(() => {});
+}
+})();
+</script>
+
+</body>
+</html>
