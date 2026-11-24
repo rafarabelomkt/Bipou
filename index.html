@@ -66,10 +66,26 @@ input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 
 .scanhead .info b{color:var(--ink)}
 .counter{font-size:.9rem;color:var(--muted);font-weight:700}
 .counter b{font:600 1.6rem var(--f-num);color:var(--blue);font-variant-numeric:tabular-nums;vertical-align:-2px}
-.cam{position:relative;width:100%;aspect-ratio:4/3;max-width:100%;background:#111;border-radius:12px;overflow:hidden}
+/* Câmera grande: ocupa quase toda a altura entre o topo e a barra de baixo */
+.cam{position:relative;width:100%;max-width:100%;height:calc(100svh - 56px - var(--nav-h) - 130px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));min-height:360px;background:#111;border-radius:14px;overflow:hidden;outline:4px solid transparent;transition:outline-color .15s}
+.cam.flash-ok{outline-color:var(--ok)}.cam.flash-dup{outline-color:var(--err)}.cam.flash-warn{outline-color:#f5a623}
 .cam video{width:100%;height:100%;object-fit:cover;display:block}
-.cam .frame{position:absolute;left:8%;right:8%;top:28%;bottom:28%;border:3px solid rgba(255,230,0,.9);border-radius:10px;box-shadow:0 0 0 999px rgba(0,0,0,.28)}
-.cam .laser{position:absolute;left:10%;right:10%;top:50%;height:2px;background:#ff3b30;box-shadow:0 0 8px #ff3b30}
+.cam .frame{position:absolute;left:5%;right:5%;top:20%;bottom:20%;border:3px solid rgba(255,230,0,.95);border-radius:12px;box-shadow:0 0 0 999px rgba(0,0,0,.18)}
+.cam .laser{position:absolute;left:7%;right:7%;top:50%;height:2px;background:#ff3b30;box-shadow:0 0 8px #ff3b30}
+.cam-top{position:absolute;left:10px;right:10px;top:10px;display:flex;justify-content:space-between;gap:8px;pointer-events:none}
+.cam-chip{background:rgba(0,0,0,.6);color:#fff;font-size:.82rem;font-weight:700;padding:6px 10px;border-radius:999px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.cam-chip b{color:var(--yellow)}
+.cam-chip.count b{font:600 1.05rem var(--f-num)}
+.cam-tools{position:absolute;right:10px;bottom:12px;display:flex;gap:8px;align-items:center}
+.zoom{display:flex;background:rgba(0,0,0,.6);border-radius:999px;padding:3px}
+.zoom button{border:0;background:none;color:#fff;font:800 .9rem var(--f-body);min-width:44px;height:38px;border-radius:999px;cursor:pointer}
+.zoom button[aria-pressed="true"]{background:var(--yellow);color:var(--blue)}
+.tool{width:44px;height:44px;border-radius:50%;border:0;background:rgba(0,0,0,.6);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.tool[aria-pressed="true"]{background:var(--yellow);color:var(--blue)}
+.engine{position:absolute;left:10px;bottom:14px;font-size:.7rem;color:rgba(255,255,255,.8);background:rgba(0,0,0,.45);padding:3px 8px;border-radius:999px}
+.engine.bad{background:var(--err);color:#fff;font-weight:700}
+.manual-card summary{font-weight:800;cursor:pointer;color:var(--blue);list-style-position:inside}
+.manual-card[open]{gap:12px}
 .cam .cam-msg{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;color:#fff;text-align:center;padding:20px;font-weight:600}
 .status{border-radius:10px;padding:14px 16px;display:flex;gap:12px;align-items:center;font-weight:700;min-height:64px;background:var(--surface);color:var(--muted)}
 .status .ic{flex:none;width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.1rem;color:#fff;background:var(--line)}
@@ -241,13 +257,20 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--su
 
   <!-- ESCANEAR -->
   <section class="view" id="v-escanear" hidden>
-    <div class="scanhead">
-      <div class="info" id="scanInfo"></div>
-      <div class="counter">Pacotes nesta leitura: <b id="cntSess">0</b></div>
-    </div>
     <div class="cam" id="cam">
-      <video id="video" playsinline muted></video>
+      <video id="video" playsinline muted autoplay></video>
       <div class="frame" id="camFrame" hidden></div><div class="laser" id="camLaser" hidden></div>
+      <div class="cam-top">
+        <span class="cam-chip" id="scanInfo"></span>
+        <span class="cam-chip count"><b id="cntSess">0</b> <span id="cntLbl">pacotes</span></span>
+      </div>
+      <div class="cam-tools" id="camTools" hidden>
+        <div class="zoom" id="zoomBox" hidden></div>
+        <button type="button" class="tool" id="btnTorch" hidden aria-pressed="false" aria-label="Lanterna">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2h8l-1 6H9z"/><path d="M9 8v4l-1 2v8h8v-8l-1-2V8"/><path d="M12 15v2"/></svg>
+        </button>
+      </div>
+      <span class="engine" id="engine">Carregando leitor…</span>
       <div class="cam-msg" id="camMsg">
         <span id="camMsgText">Abrindo a câmera…</span>
         <button class="btn primary" id="btnPhoto" hidden>Tirar foto do código</button>
@@ -257,14 +280,15 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--su
     <div class="status" id="status" role="status" aria-live="assertive">
       <span class="ic">•</span><span class="txt">Aponte a câmera para o código do pacote.</span>
     </div>
-    <div class="card">
-      <h2 style="font-size:1rem">Digitar código</h2>
+    <details class="card manual-card">
+      <summary>Digitar código à mão</summary>
       <form class="manual" id="manualForm">
         <input type="text" id="manualIn" inputmode="numeric" placeholder="Se a etiqueta não ler" autocomplete="off">
         <button class="btn blue" type="submit">Registrar</button>
       </form>
       <p class="hint">Segue as mesmas regras da câmera: quantidade certa de números e sem repetição.</p>
-    </div>
+      <button type="button" class="link-btn" id="btnPhoto2">Ler por foto</button>
+    </details>
     <div class="card" id="recentCard" hidden>
       <h2 style="font-size:1rem">Últimos lidos</h2>
       <ul class="recent" id="recent"></ul>
@@ -544,6 +568,28 @@ function setStatus(kind, ic, title, sub){
   if (sub){ const b = document.createElement("small"); if (kind === "ok") b.className = "code"; b.textContent = sub; t.appendChild(b); }
   s.append(i, t);
   if (kind){ void s.offsetWidth; s.classList.add("pop"); }
+  const cam = $("cam");
+  if (cam && (kind === "ok" || kind === "dup" || kind === "warn")){
+    cam.classList.remove("flash-ok","flash-dup","flash-warn"); void cam.offsetWidth; cam.classList.add("flash-" + kind);
+    clearTimeout(cam._t); cam._t = setTimeout(() => cam.classList.remove("flash-" + kind), 900);
+  }
+}
+// Uma etiqueta pode ter vários códigos (QR, barras). Fica com o que tem a QTD certa de números.
+// Pela câmera, o mesmo código precisa aparecer 2 vezes seguidas: evita leitura falsa.
+const seen = new Map();
+function handleCandidates(raws, source){
+  const a = active(); if (!a) return false;
+  const codes = [...new Set(raws.map(extractCode).filter(c => c && /^[\x21-\x7E]+$/.test(c)))];
+  if (!codes.length) return false;
+  const pick = codes.find(c => c.length === a.qtd) || codes[0];
+  if (source === "cam"){
+    const now = Date.now(), prev = seen.get(pick);
+    for (const [k, v] of seen) if (now - v.at > 2000) seen.delete(k);
+    if (!prev || now - prev.at > 2000){ seen.set(pick, {n:1, at:now}); return false; }
+    prev.n++; prev.at = now;
+    if (prev.n < 2) return false;
+  }
+  return handleCode(pick, source);
 }
 let actx = null;
 function beep(freq, dur, times){
@@ -558,10 +604,11 @@ function beep(freq, dur, times){
   } catch(e){}
 }
 function vib(p){ try { navigator.vibrate && navigator.vibrate(p); } catch(e){} }
+// Sem som: só vibração e a cor da tela.
 function feedback(kind){
-  if (kind === "ok"){ beep(1600, 0.09, 1); vib(60); }
-  else if (kind === "dup"){ beep(320, 0.18, 2); vib([200,80,200]); }
-  else { beep(600, 0.15, 1); vib([120,60,120]); }
+  if (kind === "ok") vib(60);
+  else if (kind === "dup") vib([200,80,200]);
+  else vib([120,60,120]);
 }
 function renderScanHead(){
   const a = active(); if (!a) return;
@@ -569,6 +616,7 @@ function renderScanHead(){
   [["Grade ", a.grade], [" · ", a.cidades.join(", ")]].forEach(([l, v]) => { info.append(l); const b = document.createElement("b"); b.textContent = v; info.append(b); });
   const mine = scansOf(a.id);
   $("cntSess").textContent = mine.length;
+  $("cntLbl").textContent = mine.length === 1 ? "pacote" : "pacotes";
   const rc = $("recent"); rc.textContent = "";
   mine.slice(-5).reverse().forEach(s => { const li = document.createElement("li"); const x = document.createElement("span"); x.textContent = s.code; const y = document.createElement("span"); y.textContent = fmtTime(s.at); li.append(x, y); rc.appendChild(li); });
   $("recentCard").hidden = !mine.length;
@@ -581,9 +629,11 @@ $("btnEncerrar").addEventListener("click", () => {
   toast("Leitura encerrada. Exporte o arquivo abaixo.");
 });
 
-/* ---------- Câmera ---------- */
+/* ---------- Câmera e leitores ----------
+   Ordem de uso: 1) leitor do próprio celular (Android), 2) leitor avançado zxing-cpp
+   em segundo plano (todos os celulares, inclusive iPhone), 3) leitor básico (reserva). */
 const video = $("video");
-let stream = null, loopT = null, detector = null, zreader = null, busy = false, wake = null;
+let stream = null, track = null, loopT = null, detector = null, zreader = null, wake = null, tickN = 0, torchOn = false;
 const workCanvas = document.createElement("canvas");
 function getZReader(tryHarder){
   if (!window.ZXing) return null;
@@ -597,12 +647,13 @@ async function initDetector(){
   detector = false;
   try {
     if ("BarcodeDetector" in window){
-      const want = ["qr_code","code_128","ean_13","ean_8","upc_a","itf","code_39","code_93","codabar","data_matrix"];
+      const want = ["qr_code","code_128","ean_13","ean_8","upc_a","upc_e","itf","code_39","code_93","codabar","data_matrix","pdf417","aztec"];
       const sup = await BarcodeDetector.getSupportedFormats();
       const f = want.filter(x => sup.includes(x));
       if (f.length) detector = new BarcodeDetector({formats:f});
     }
   } catch(e){ detector = false; }
+  updateEngine();
 }
 function zxingFromCanvas(c, tryHarder){
   const r = tryHarder ? getZReader(true) : (zreader = zreader || getZReader(false));
@@ -612,71 +663,177 @@ function zxingFromCanvas(c, tryHarder){
     return r.decode(bb).getText();
   } catch(e){ return null; }
 }
+
+/* Leitor avançado em segundo plano */
+let worker = null, workerReady = false, workerFailed = false, wid = 0;
+const pending = new Map();
+function initWorker(){
+  if (worker || workerFailed) return;
+  try {
+    worker = new Worker("libs/decoder-worker.js");
+    worker.onmessage = e => {
+      const d = e.data;
+      if (d.type === "ready"){ workerReady = true; updateEngine(); }
+      else if (d.type === "error"){ workerFailed = true; updateEngine(); }
+      else if (d.type === "result"){ const r = pending.get(d.id); pending.delete(d.id); if (r) r(d.texts || []); }
+    };
+    worker.onerror = () => { workerFailed = true; workerReady = false; updateEngine(); pending.forEach(r => r([])); pending.clear(); };
+  } catch(e){ workerFailed = true; }
+}
+function wasmDecode(imageData, sharpen){
+  return new Promise(res => {
+    const id = ++wid; pending.set(id, res);
+    worker.postMessage({type:"decode", id, imageData, sharpen: !!sharpen}, [imageData.data.buffer]);
+    setTimeout(() => { if (pending.has(id)){ pending.delete(id); res([]); } }, 2500);
+  });
+}
+let engineWarned = false;
+function updateEngine(){
+  const el = $("engine"); if (!el) return;
+  const parts = [];
+  if (detector) parts.push("celular");
+  if (workerReady) parts.push("avançado");
+  else if (window.ZXing) parts.push("básico");
+  el.classList.toggle("bad", !parts.length && (workerFailed || detector === false));
+  el.textContent = parts.length ? "Leitor: " + parts.join(" + ") : (workerFailed ? "Leitor não carregou" : "Carregando leitor…");
+}
+setTimeout(() => {
+  updateEngine();
+  if (!detector && !workerReady && !window.ZXing && !engineWarned){
+    engineWarned = true;
+    if (current === "escanear") setStatus("dup", "!", "O leitor de códigos não carregou.", "Feche e abra o app com internet. Se continuar, os arquivos da pasta libs não foram enviados.");
+  }
+}, 8000);
+
 function camMessage(text, showPhoto){
   $("camMsg").hidden = false; $("camMsgText").textContent = text; $("btnPhoto").hidden = !showPhoto;
-  $("camFrame").hidden = $("camLaser").hidden = true;
+  $("camFrame").hidden = $("camLaser").hidden = true; $("camTools").hidden = true;
 }
 async function startCamera(){
   if (stream) return;
-  await initDetector();
+  initWorker(); await initDetector();
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ camMessage("Este navegador não libera a câmera ao vivo. Use a foto.", true); return; }
   camMessage("Abrindo a câmera…", false);
   try {
-    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}, width:{ideal:1280}, height:{ideal:720}}, audio:false});
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:"environment"}, width:{ideal:1920}, height:{ideal:1080}}, audio:false});
+    } catch(e1){
+      if (e1 && e1.name === "NotAllowedError") throw e1;
+      stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:"environment"}, audio:false});
+    }
     if (current !== "escanear"){ stopCamera(); return; }
     video.srcObject = stream; await video.play();
+    track = stream.getVideoTracks()[0];
     $("camMsg").hidden = true; $("camFrame").hidden = $("camLaser").hidden = false;
+    setupTools();
     try { wake = await navigator.wakeLock.request("screen"); } catch(e){ wake = null; }
-    loopT = setInterval(tick, 180);
+    tick();
   } catch(e){
     stream = null;
     camMessage(e && e.name === "NotAllowedError" ? "A câmera está bloqueada. Libere a câmera nas permissões do navegador, ou use a foto." : "Não foi possível abrir a câmera aqui. Use a foto.", true);
   }
 }
+/* Foco contínuo, zoom e lanterna (quando o celular permite) */
+async function setupTools(){
+  let caps = {};
+  try { caps = track.getCapabilities ? track.getCapabilities() : {}; } catch(e){}
+  try { if (caps.focusMode && caps.focusMode.includes("continuous")) await track.applyConstraints({advanced:[{focusMode:"continuous"}]}); } catch(e){}
+  const zb = $("zoomBox"); zb.textContent = ""; zb.hidden = true;
+  if (caps.zoom && caps.zoom.max > 1){
+    const min = caps.zoom.min || 1, max = caps.zoom.max;
+    const opts = [1, 1.5, 2, 3].filter(z => z >= min && z <= max);
+    if (opts.length > 1){
+      let saved = 1; try { saved = parseFloat(localStorage.getItem("xpt-zoom")) || 1; } catch(e){}
+      if (!opts.includes(saved)) saved = opts[0];
+      opts.forEach(z => {
+        const b = document.createElement("button"); b.type = "button"; b.textContent = z + "x"; b.setAttribute("aria-pressed", String(z === saved));
+        b.addEventListener("click", () => setZoom(z));
+        zb.appendChild(b);
+      });
+      zb.hidden = false; setZoom(saved);
+    }
+  }
+  $("btnTorch").hidden = !caps.torch; torchOn = false; $("btnTorch").setAttribute("aria-pressed", "false");
+  $("camTools").hidden = zb.hidden && !caps.torch;
+}
+async function setZoom(z){
+  try { await track.applyConstraints({advanced:[{zoom:z}]}); } catch(e){}
+  [...$("zoomBox").children].forEach(b => b.setAttribute("aria-pressed", String(b.textContent === z + "x")));
+  try { localStorage.setItem("xpt-zoom", String(z)); } catch(e){}
+}
+$("btnTorch").addEventListener("click", async () => {
+  torchOn = !torchOn;
+  try { await track.applyConstraints({advanced:[{torch:torchOn}]}); } catch(e){ torchOn = false; }
+  $("btnTorch").setAttribute("aria-pressed", String(torchOn));
+});
 function stopCamera(){
-  clearInterval(loopT); loopT = null;
+  clearTimeout(loopT); loopT = null;
   if (stream){ stream.getTracks().forEach(t => t.stop()); stream = null; }
-  video.srcObject = null;
+  track = null; video.srcObject = null;
   if (wake){ try { wake.release(); } catch(e){} wake = null; }
 }
+// Quadro a quadro: alterna entre o centro da imagem em resolução cheia e a imagem inteira.
 async function tick(){
-  if (busy || !stream || video.readyState < 2) return;
-  busy = true;
+  if (!stream) return;
+  const texts = [];
   try {
-    let text = null;
-    if (detector){
-      const r = await detector.detect(video);
-      if (r && r.length) text = r[0].rawValue;
-    } else {
-      const vw = video.videoWidth, vh = video.videoHeight;
-      if (vw){
-        const scale = Math.min(1, 960 / vw);
-        workCanvas.width = Math.round(vw*scale); workCanvas.height = Math.round(vh*scale);
-        workCanvas.getContext("2d", {willReadFrequently:true}).drawImage(video, 0, 0, workCanvas.width, workCanvas.height);
-        text = zxingFromCanvas(workCanvas, false);
+    if (video.readyState >= 2 && video.videoWidth){
+      if (detector){
+        try { (await detector.detect(video)).forEach(r => r.rawValue && texts.push(r.rawValue)); } catch(e){}
+      }
+      if (!texts.length && (workerReady || window.ZXing)){
+        // 4 tentativas alternadas: centro, centro realçado, imagem inteira, centro girado 45°
+        const pass = tickN++ % (workerReady ? 4 : 2);
+        const vw = video.videoWidth, vh = video.videoHeight;
+        let sx = 0, sy = 0, sw = vw, sh = vh, lim = 1280;
+        if (pass !== 2){ sw = Math.round(vw * 0.86); sh = Math.round(vh * 0.62); sx = (vw - sw) >> 1; sy = (vh - sh) >> 1; lim = pass === 3 ? 1100 : 1600; }
+        const scale = Math.min(1, lim / Math.max(sw, sh));
+        const w = Math.max(1, Math.round(sw * scale)), h = Math.max(1, Math.round(sh * scale));
+        const ctx = workCanvas.getContext("2d", {willReadFrequently:true});
+        if (pass === 3){
+          const D = Math.ceil(Math.hypot(w, h));
+          workCanvas.width = D; workCanvas.height = D;
+          ctx.fillStyle = "#808080"; ctx.fillRect(0, 0, D, D);
+          ctx.save(); ctx.translate(D / 2, D / 2); ctx.rotate(Math.PI / 4);
+          ctx.drawImage(video, sx, sy, sw, sh, -w / 2, -h / 2, w, h); ctx.restore();
+        } else {
+          workCanvas.width = w; workCanvas.height = h;
+          ctx.drawImage(video, sx, sy, sw, sh, 0, 0, w, h);
+        }
+        if (workerReady) (await wasmDecode(ctx.getImageData(0, 0, workCanvas.width, workCanvas.height), pass === 1 || pass === 3)).forEach(t => texts.push(t));
+        else { const t = zxingFromCanvas(workCanvas, false); if (t) texts.push(t); }
       }
     }
-    if (text) handleCode(text, "cam");
-  } catch(e){} finally { busy = false; }
+  } catch(e){}
+  if (texts.length && stream) handleCandidates(texts, "cam");
+  if (stream) loopT = setTimeout(tick, 40);
 }
 document.addEventListener("visibilitychange", () => { if (document.hidden) stopCamera(); else if (current === "escanear") startCamera(); });
 
+/* Foto (quando a câmera ao vivo não abre, ou pelo link "Ler por foto") */
 $("btnPhoto").addEventListener("click", () => $("photoIn").click());
+$("btnPhoto2").addEventListener("click", () => $("photoIn").click());
 $("photoIn").addEventListener("change", async () => {
   const f = $("photoIn").files[0]; $("photoIn").value = ""; if (!f) return;
   setStatus("", "…", "Lendo a foto…", "");
+  initWorker();
   const url = URL.createObjectURL(f);
   try {
     const img = new Image(); img.src = url; await img.decode();
-    let text = null;
-    if (detector){ try { const r = await detector.detect(img); if (r.length) text = r[0].rawValue; } catch(e){} }
-    if (!text){
-      const scale = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+    let texts = [];
+    if (detector){ try { (await detector.detect(img)).forEach(r => r.rawValue && texts.push(r.rawValue)); } catch(e){} }
+    if (!texts.length){
+      const scale = Math.min(1, 2200 / Math.max(img.naturalWidth, img.naturalHeight));
       workCanvas.width = Math.round(img.naturalWidth*scale); workCanvas.height = Math.round(img.naturalHeight*scale);
-      workCanvas.getContext("2d", {willReadFrequently:true}).drawImage(img, 0, 0, workCanvas.width, workCanvas.height);
-      text = zxingFromCanvas(workCanvas, true);
+      const ctx = workCanvas.getContext("2d", {willReadFrequently:true});
+      ctx.drawImage(img, 0, 0, workCanvas.width, workCanvas.height);
+      if (workerReady){
+        texts = await wasmDecode(ctx.getImageData(0, 0, workCanvas.width, workCanvas.height));
+        if (!texts.length) texts = await wasmDecode(ctx.getImageData(0, 0, workCanvas.width, workCanvas.height), true);
+      }
+      if (!texts.length){ const t = zxingFromCanvas(workCanvas, true); if (t) texts.push(t); }
     }
-    if (text) handleCode(text, "photo");
+    if (texts.length) handleCandidates(texts, "photo");
     else { setStatus("warn", "!", "Nenhum código encontrado na foto.", "Tire de novo, mais de perto e com o código nítido."); feedback("warn"); }
   } catch(e){ setStatus("warn", "!", "Não foi possível abrir a foto.", "Tente de novo."); }
   finally { URL.revokeObjectURL(url); }
@@ -872,6 +1029,7 @@ async function deliver(name, blob, mode, text){
 }
 
 /* ---------- Abertura ---------- */
+initWorker(); initDetector();
 go("inicio");
 window.__xpt = {handleCode: v => handleCode(v, "manual")};
 if ("serviceWorker" in navigator && location.protocol === "https:" && !window.claude){
