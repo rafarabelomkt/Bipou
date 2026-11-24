@@ -354,8 +354,8 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--su
 
 <div class="toast" id="toast" hidden></div>
 
-<script src="libs/zxing.min.js"></script>
-<script src="libs/xlsx.mini.min.js"></script>
+<script src="zxing.min.js"></script>
+<script src="xlsx.mini.min.js"></script>
 <script>
 (function(){
 "use strict";
@@ -670,7 +670,7 @@ const pending = new Map();
 function initWorker(){
   if (worker || workerFailed) return;
   try {
-    worker = new Worker("libs/decoder-worker.js");
+    worker = new Worker("decoder-worker.js");
     worker.onmessage = e => {
       const d = e.data;
       if (d.type === "ready"){ workerReady = true; updateEngine(); }
