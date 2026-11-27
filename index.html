@@ -24,7 +24,7 @@
   --ok:#00A650; --ok-bg:#E3F6EC; --warn:#B26B00; --warn-bg:#FFF1D6; --err:#E0312B; --err-bg:#FDE7E6;
   --f-body:"Nunito Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --f-num:"Roboto Mono",ui-monospace,Menlo,Consolas,monospace;
-  --nav-h:64px;
+  --nav-h:66px;
 }
 *{box-sizing:border-box}
 html,body{height:100%}
@@ -141,13 +141,13 @@ input:focus,select:focus{outline:none;border-color:var(--blue);box-shadow:0 0 0 
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--nav-h) + 16px + env(safe-area-inset-bottom,0px));background:var(--ink);color:#fff;padding:12px 18px;border-radius:10px;font-weight:700;font-size:.92rem;z-index:50;max-width:calc(100% - 32px);text-align:center}
 
 /* Bottom nav */
-nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(3,1fr);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
-.navbtn{height:var(--nav-h);border:0;background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font:700 .78rem var(--f-body);color:var(--muted);cursor:pointer;position:relative}
-.navbtn svg{width:26px;height:26px}
-.navbtn[aria-current="page"]{color:var(--blue)}
-.navbtn[aria-current="page"]::before{content:"";position:absolute;top:0;left:25%;right:25%;height:3px;border-radius:0 0 3px 3px;background:var(--blue)}
-.navbtn.scan .bubble{width:46px;height:46px;border-radius:50%;background:var(--yellow);display:flex;align-items:center;justify-content:center;color:var(--blue);margin-top:-18px;box-shadow:0 2px 8px rgba(0,0,0,.18)}
-.navbtn.scan[aria-current="page"]::before{display:none}
+nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--surface);border-top:1px solid #D9DBE3;display:grid;grid-template-columns:repeat(3,1fr);padding-bottom:env(safe-area-inset-bottom,0px);padding-left:max(8px,env(safe-area-inset-left,0px));padding-right:max(8px,env(safe-area-inset-right,0px))}
+.navbtn{height:var(--nav-h);border:0;border-left:1px solid var(--line);background:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font:800 .9rem var(--f-body);color:#5B6070;cursor:pointer;position:relative;white-space:nowrap;min-width:0}
+.navbtn:first-child{border-left:0}
+.navbtn svg{width:24px;height:24px;flex:none}
+.navbtn[aria-current="page"]{color:var(--blue);background:#F3F4FA}
+.navbtn[aria-current="page"]::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;background:var(--blue)}
+@media (max-width:350px){.navbtn{font-size:.8rem}}
 @media (prefers-reduced-motion:reduce){.status.pop{animation:none}}
 </style>
 
@@ -190,20 +190,111 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--su
 .dl-row{font-size:.9rem;color:var(--muted);font-weight:600;text-align:center;display:flex;gap:6px;justify-content:center;align-items:center;flex-wrap:wrap}
 .dl-row .link-btn{align-self:auto;padding:4px 2px;text-decoration:underline}
 .credit{margin:12px 0 0;text-align:center;font-size:.72rem;color:var(--muted);opacity:.8;letter-spacing:.01em}
+
+/* Cabeçalho: ícone muda conforme o módulo */
+.hicon{width:30px;height:30px;border-radius:7px;background:var(--blue);display:flex;align-items:center;justify-content:center;flex:none;color:var(--yellow);font:900 15px var(--f-body)}
+/* Abertura animada */
+.splash{position:fixed;inset:0;z-index:100;background:var(--yellow);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;animation:sp-out .3s ease-in 1.65s forwards;cursor:pointer}
+.sp-logo{width:132px;height:132px;border-radius:30px;background:var(--blue);display:flex;align-items:center;justify-content:center;transform:scale(.6);opacity:0;animation:sp-pop .35s cubic-bezier(.2,1.4,.4,1) .05s forwards, sp-bump .32s ease-out 1.0s}
+.sp-logo svg{width:104px;height:104px;overflow:visible}
+.sp-line{fill:none;stroke:var(--yellow);stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.sp-body{stroke-dasharray:60;stroke-dashoffset:60;animation:sp-draw .4s ease-out .25s forwards}
+.sp-back{stroke-dasharray:20;stroke-dashoffset:20;animation:sp-draw .25s ease-out .45s forwards}
+.sp-flap{transform-box:view-box}
+.sp-fl{transform-origin:7px 11px;transform:rotate(-150deg);opacity:0;animation:sp-show .1s linear .45s forwards, sp-close .45s cubic-bezier(.5,1.6,.5,1) .7s forwards}
+.sp-fr{transform-origin:23px 11px;transform:rotate(150deg);opacity:0;animation:sp-show .1s linear .45s forwards, sp-close .45s cubic-bezier(.5,1.6,.5,1) .7s forwards}
+.sp-name{font-weight:900;font-size:44px;color:var(--blue);letter-spacing:-.01em;opacity:0;transform:translateY(10px);animation:sp-rise .35s ease-out 1.05s forwards}
+@keyframes sp-pop{to{transform:scale(1);opacity:1}}
+@keyframes sp-bump{0%{transform:scale(1)}40%{transform:scale(1.08,.94)}100%{transform:scale(1)}}
+@keyframes sp-draw{to{stroke-dashoffset:0}}
+@keyframes sp-show{to{opacity:1}}
+@keyframes sp-close{to{transform:rotate(0deg)}}
+@keyframes sp-rise{to{opacity:1;transform:none}}
+@keyframes sp-out{to{opacity:0;visibility:hidden}}
+@media (prefers-reduced-motion:reduce){.splash,.splash *{animation-duration:.01s!important;animation-delay:0s!important}}
+/* Tela inicial: dois módulos */
+.hub-hello{font-size:1.6rem;font-weight:800;margin:6px 0 0;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.pen{border:0;background:none;color:var(--blue);opacity:.45;width:36px;height:36px;border-radius:8px;display:inline-flex;align-items:center;justify-content:center;cursor:pointer}
+.pen:focus-visible{outline:3px solid var(--blue);opacity:1}
+.hub-tag{margin:-6px 0 4px;font-size:1rem;font-weight:700;color:var(--blue)}
+.mod{border:0;border-radius:16px;height:118px;padding:0 16px;display:flex;align-items:center;gap:14px;text-align:left;cursor:pointer;width:100%;font-family:var(--f-body)}
+.mod .ico{width:52px;height:52px;border-radius:14px;display:flex;align-items:center;justify-content:center;flex:none}
+.mod .t{display:flex;flex-direction:column;gap:3px;min-width:0}
+.mod b{font-size:1.3rem;font-weight:900;line-height:1.15}
+.mod span.s{font-size:.95rem;font-weight:600;opacity:.85}
+.mod.y{background:var(--yellow);color:var(--blue)}.mod.y .ico{background:var(--blue);color:var(--yellow)}
+.mod.b{background:var(--blue);color:#fff}.mod.b .ico{background:var(--yellow);color:var(--blue)}
+.mod:focus-visible{outline:3px solid var(--ink);outline-offset:3px}
+.hub-credit{margin:auto 0 0;padding-top:28px;text-align:center;font-size:.72rem;color:var(--muted);opacity:.85}
+.modtitle{margin:2px 0 0;font-size:1.35rem;font-weight:800}
+/* Cálculo de rota */
+.lockin{display:flex;align-items:center;gap:8px;background:#EEF0F5;border:1.5px solid var(--line);border-radius:8px;padding:12px;font-weight:700;color:#4a4f5e;min-height:48px}
+.rcity{display:flex;gap:8px;align-items:center}
+.rcity .num{width:30px;height:30px;border-radius:50%;background:var(--blue);color:var(--yellow);font-weight:900;display:flex;align-items:center;justify-content:center;flex:none}
+.rcity select{flex:1;min-width:0}
+.rcity .rm{flex:none;width:44px;height:48px;border:1.5px solid var(--line);background:var(--surface);border-radius:8px;font-size:1.2rem;color:var(--muted);cursor:pointer}
+.chkrow{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1rem;cursor:pointer;min-height:44px}
+.chkrow input{width:24px;height:24px;accent-color:var(--blue);flex:none}
+.order-note{background:#FFF6BF;border-radius:8px;padding:10px 12px;font-size:.9rem;font-weight:700;color:#5d4f00}
+.row2b{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.rv{background:var(--ok-bg);border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:4px}
+.rv span{font-size:.95rem;font-weight:800;color:#006b34}
+.rv b{font:500 2.4rem var(--f-num);color:var(--ok);font-variant-numeric:tabular-nums;line-height:1.15}
+.kvl{display:flex;flex-direction:column}
+.kvl div{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-top:1px dashed var(--line);font-size:.98rem}
+.kvl div:first-child{border-top:0}
+.kvl span{color:var(--muted);font-weight:600}
+.kvl b{font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+.rnote{background:var(--warn-bg);color:#7a4900;border-radius:8px;padding:10px 12px;font-weight:800;font-size:.9rem;text-align:center}
+.receipt{background:#fff;border-radius:6px;padding:20px 18px 26px;display:flex;flex-direction:column;gap:2px;box-shadow:0 1px 3px rgba(0,0,0,.08);position:relative}
+.receipt::after{content:"";position:absolute;left:0;right:0;bottom:-8px;height:16px;background:radial-gradient(circle at 8px 0,var(--bg) 8px,transparent 8.5px) 0 0/16px 16px repeat-x}
+.rc-h{text-align:center;padding-bottom:12px;margin-bottom:6px;border-bottom:2px dashed #cfd2db}
+.rc-h b{display:block;font-size:1.2rem;font-weight:900;color:var(--blue)}
+.rc-h span{font-size:.85rem;color:var(--muted);font-weight:700}
+.rc-tot{display:flex;justify-content:space-between;align-items:center;border-top:2px solid var(--ink);margin-top:8px;padding-top:10px;gap:10px}
+.rc-tot span{font-weight:900}
+.rc-tot b{font:600 1.5rem var(--f-num);color:var(--ok);white-space:nowrap}
+.rc-foot{margin-top:12px;text-align:center;font-size:.75rem;color:var(--muted)}
+.rlist{display:flex;flex-direction:column}
+.rlist button{all:unset;box-sizing:border-box;cursor:pointer;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:14px 0;border-top:1px solid var(--line);align-items:center}
+.rlist button:first-child{border-top:0}
+.rlist button:focus-visible{outline:3px solid var(--blue);outline-offset:2px;border-radius:6px}
+.rlist .a{font-weight:800;font-size:1.02rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rlist .b{font-size:.85rem;color:var(--muted);grid-column:1}
+.rlist .v{grid-row:1/3;grid-column:2;font:600 1.1rem var(--f-num);color:var(--ok);white-space:nowrap}
 .inline-confirm{background:var(--err-bg);border-radius:10px;padding:14px;display:flex;flex-direction:column;gap:10px;color:#7a1712;font-weight:700}
 </style>
 
+<div class="splash" id="splash" aria-hidden="true">
+  <div class="sp-logo"><svg viewBox="0 0 30 30">
+    <path class="sp-line sp-body" d="M7 11v9l8 4 8-4v-9M15 15v9"/>
+    <path class="sp-line sp-back" d="M7 11l8-4 8 4"/>
+    <path class="sp-line sp-flap sp-fl" d="M7 11l8 4"/>
+    <path class="sp-line sp-flap sp-fr" d="M23 11l-8 4"/>
+  </svg></div>
+  <div class="sp-name">Bipou</div>
+</div>
+
 <header class="top">
-  <svg width="30" height="30" viewBox="0 0 30 30" aria-hidden="true"><rect width="30" height="30" rx="7" fill="#2D3277"/><path d="M7 11l8-4 8 4v9l-8 4-8-4z" fill="none" stroke="#FFE600" stroke-width="2" stroke-linejoin="round"/><path d="M7 11l8 4 8-4M15 15v9" fill="none" stroke="#FFE600" stroke-width="2" stroke-linejoin="round"/></svg>
-  <h1>Bipou</h1>
+  <span class="hicon" id="hIcon" aria-hidden="true"></span>
+  <h1 id="hTitle">Bipou</h1>
   <span class="sub" id="topSub" hidden></span>
 </header>
 
 <main>
+  <!-- TELA INICIAL: escolher o módulo -->
+  <section class="view" id="v-hub" hidden style="min-height:calc(100svh - 150px)">
+    <p class="hub-hello"><span id="hubHello">Bom dia.</span><button type="button" class="pen" id="btnEditNome" aria-label="Trocar nome"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg></button></p>
+    <p class="hub-tag">O aplicativo auxiliar do motorista</p>
+    <button type="button" class="mod y" id="goContagem"><span class="ico"><svg width="28" height="28" viewBox="0 0 30 30" aria-hidden="true"><path d="M7 11l8-4 8 4v9l-8 4-8-4z M7 11l8 4 8-4M15 15v9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linejoin="round"/></svg></span><span class="t"><b>Contagem de pacotes</b><span class="s">Ler os códigos de cada pacote</span></span></button>
+    <button type="button" class="mod b" id="goRota"><span class="ico"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5"/></svg></span><span class="t"><b>Cálculo de rota</b><span class="s">Quanto você vai receber</span></span></button>
+    <p class="hub-credit">Aplicativo desenvolvido por Rafael Rabelo</p>
+  </section>
+
   <!-- INÍCIO (tela de abertura) -->
   <section class="view" id="v-inicio">
-    <p class="hello" id="hello">Bom dia</p>
-    <p class="hello-sub"><span id="helloDate"></span> · <button type="button" class="link-btn" id="btnTrocarNome" style="display:inline;padding:0;font-size:.9rem">Trocar nome</button></p>
+    <h2 class="modtitle">Contagem de pacotes</h2>
+    <p class="hello-sub" style="margin:0"><span id="helloDate"></span></p>
     <div class="active-card" id="activeCard" hidden>
       <span class="lbl">Leitura em andamento</span>
       <span class="ttl" id="acTitle"></span>
@@ -228,8 +319,8 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--su
   <!-- BOAS-VINDAS (primeiro acesso) -->
   <section class="view" id="v-bemvindo" hidden>
     <div class="card">
-      <h2 style="font-size:1.5rem">Bem-vindo, motorista!</h2>
-      <p style="margin:-6px 0 0;font-size:1rem;font-weight:600;color:var(--blue)"><b style="font-weight:800">Bipou</b>, o seu app que te auxilia na contagem dos pacotes.</p>
+      <h2 style="font-size:1.5rem" id="wTitle">Bem-vindo, motorista!</h2>
+      <p style="margin:-6px 0 0;font-size:1rem;font-weight:600;color:var(--blue)"><b style="font-weight:800">Bipou</b>, o aplicativo auxiliar do motorista.</p>
       <p class="hint" style="font-size:.95rem">Digite seu nome e escolha seu veículo.</p>
       <label class="field"><span>Seu nome</span><input type="text" id="wNome" autocomplete="name" placeholder="Ex.: João Silva"></label>
       <label class="field"><span>Seu veículo</span>
@@ -322,7 +413,7 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--su
       <input type="search" id="fBusca" placeholder="Buscar número do pacote" inputmode="numeric">
     </div>
     <div id="histList" class="view"></div>
-    <p class="credit">Bipou · Este aplicativo foi criado por Rafael Rabelo<br>versão 7</p>
+    <p class="credit">Bipou · Este aplicativo foi criado por Rafael Rabelo<br>versão 8</p>
   </section>
 
   <!-- DETALHE DE UMA LEITURA -->
@@ -353,21 +444,80 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--su
       </div>
     </div>
   </section>
+
+  <!-- CÁLCULO DE ROTA: montar -->
+  <section class="view" id="v-rota" hidden>
+    <div class="card">
+      <div class="field"><span>Origem</span><div class="lockin"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg> Porto Nacional – TO (galpão)</div></div>
+      <div class="field"><span>Destino</span><div class="cities" id="rCities"></div></div>
+      <label class="chkrow"><input type="checkbox" id="rMulti"> Esta rota tem mais de uma cidade</label>
+      <div class="order-note" id="rOrder" hidden>Coloque as cidades na ordem em que você vai fazer as entregas.</div>
+      <button type="button" class="link-btn" id="rAdd" hidden style="font-size:1rem">+ Adicionar mais uma cidade</button>
+    </div>
+    <div class="card">
+      <label class="field"><span>Veículo</span><select id="rVeic"><option>Passeio</option><option>Fiorino</option><option>Van</option><option>VUC</option><option>HR</option></select></label>
+      <div class="row2b">
+        <label class="field"><span>Grade</span><input type="text" id="rGrade" placeholder="Ex.: B5" autocapitalize="characters"></label>
+        <label class="field"><span>Data</span><input type="date" id="rData"></label>
+      </div>
+      <label class="field"><span>ID da viagem</span><input type="text" id="rViagem" inputmode="numeric" placeholder="Ex.: 48213" autocomplete="off"></label>
+      <label class="field"><span>Pacotes (opcional)</span><input type="number" id="rPac" inputmode="numeric" min="0" max="5000" placeholder="Quantidade de pacotes"></label>
+    </div>
+    <div class="field" id="rErr" hidden><span class="err-text" id="rErrText"></span></div>
+    <button class="btn primary" id="rCalc">Calcular valor</button>
+  </section>
+
+  <!-- CÁLCULO DE ROTA: resultado -->
+  <section class="view" id="v-rres" hidden>
+    <div class="rv"><span>Valor que você vai receber por esta rota:</span><b id="rrValor">R$ 0,00</b></div>
+    <div class="card"><div class="kvl" id="rrKv"></div><p class="hint" id="rrHint"></p></div>
+    <div class="rnote" id="rrNoPac" hidden>Valor somente da rota. Pacotes não incluídos.</div>
+    <button class="btn primary" id="rrExt">Gerar extrato da rota</button>
+    <div class="row2b"><button class="btn ghost" id="rrEdit">Editar rota</button><button class="btn ghost" id="rrNova">Nova rota</button></div>
+    <div id="rrDelWrap" style="display:flex;justify-content:center"></div>
+  </section>
+
+  <!-- CÁLCULO DE ROTA: extrato -->
+  <section class="view" id="v-rext" hidden>
+    <button class="back" data-back="rres">‹ Voltar</button>
+    <div class="receipt" id="rxBox"></div>
+    <div style="height:6px"></div>
+    <button class="btn primary" id="rxShare">Compartilhar extrato (PDF)</button>
+    <span class="dl-row">⬇ Só baixar no celular: <button type="button" class="link-btn" id="rxDl">PDF</button></span>
+  </section>
+
+  <!-- MINHAS ROTAS -->
+  <section class="view" id="v-rotas" hidden>
+    <div class="card" style="gap:12px">
+      <h2>Minhas rotas</h2>
+      <div class="chips" role="group" aria-label="Filtrar rotas por data">
+        <button class="chip" data-rf="hoje" aria-pressed="true">Hoje</button>
+        <button class="chip" data-rf="ontem" aria-pressed="false">Ontem</button>
+        <button class="chip" data-rf="data" aria-pressed="false">Escolher data</button>
+        <button class="chip" data-rf="todas" aria-pressed="false">Todas</button>
+      </div>
+      <div class="datepick" id="rDatePick" hidden><input type="date" id="rfData"></div>
+    </div>
+    <div id="rotasList" class="view"></div>
+  </section>
 </main>
 
-<nav class="bottom" aria-label="Navegação">
-  <button class="navbtn" data-v="inicio" aria-current="page">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Início</button>
-  <button class="navbtn scan" data-v="escanear">
-    <span class="bubble"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3"/><path d="M7 9v6M10 9v6M13 9v6M16 9v6"/></svg></span>Escanear</button>
-  <button class="navbtn" data-v="codigos">
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Meus códigos</button>
+<nav class="bottom" id="navC" aria-label="Navegação da contagem" hidden>
+  <button class="navbtn" data-v="hub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Início</button>
+  <button class="navbtn" data-v="escanear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 8V5h3M17 5h3v3M20 16v3h-3M7 19H4v-3"/><path d="M7 9v6M10 9v6M13 9v6M16 9v6"/></svg>Escanear</button>
+  <button class="navbtn" data-v="codigos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Meus códigos</button>
+</nav>
+<nav class="bottom" id="navR" aria-label="Navegação do cálculo de rota" hidden>
+  <button class="navbtn" data-v="hub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>Início</button>
+  <button class="navbtn" data-v="rota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5"/></svg>Calcular</button>
+  <button class="navbtn" data-v="rotas"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Minhas rotas</button>
 </nav>
 
 <div class="toast" id="toast" hidden></div>
 
 <script src="zxing.min.js"></script>
 <script src="xlsx.mini.min.js"></script>
+<script src="jspdf.umd.min.js"></script>
 <script>
 (function(){
 "use strict";
@@ -408,18 +558,30 @@ let toastT;
 function toast(msg){ const t = $("toast"); t.textContent = msg; t.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => t.hidden = true, 2600); }
 
 /* ---------- Navegação ---------- */
-let current = "inicio", detailId = null;
-const views = ["bemvindo","inicio","nova","escanear","codigos","detalhe"];
-const navOf = {bemvindo:"inicio", inicio:"inicio", nova:"inicio", escanear:"escanear", codigos:"codigos", detalhe:"codigos"};
+let current = "hub", detailId = null;
+const views = ["hub","bemvindo","inicio","nova","escanear","codigos","detalhe","rota","rres","rext","rotas"];
+const navOf = {escanear:"escanear", codigos:"codigos", detalhe:"codigos", rota:"rota", rres:"rota", rext:"rota", rotas:"rotas"};
+const modOf = {inicio:"C", nova:"C", escanear:"C", codigos:"C", detalhe:"C", rota:"R", rres:"R", rext:"R", rotas:"R"};
+const ICON_BOX = '<svg width="20" height="20" viewBox="0 0 30 30"><path d="M7 11l8-4 8 4v9l-8 4-8-4z M7 11l8 4 8-4M15 15v9" fill="none" stroke="#FFE600" stroke-width="2.6" stroke-linejoin="round"/></svg>';
+const titleOf = {rota:"Cálculo de rota", rres:"Cálculo de rota", rext:"Extrato", rotas:"Minhas rotas"};
 function go(v){
   if (v === "escanear" && !active()){
     v = "nova"; setTimeout(() => showFormErr("Para escanear, comece uma nova leitura."), 0);
   }
   if (!lastCfg.motorista && v !== "bemvindo") v = "bemvindo";
   current = v;
-  if (v === "bemvindo"){ $("wNome").value = lastCfg.motorista || ""; $("wVeiculo").value = lastCfg.veiculo || "Passeio"; $("wErr").hidden = true; }
+  if (v === "bemvindo"){ $("wNome").value = lastCfg.motorista || ""; $("wVeiculo").value = lastCfg.veiculo || "Passeio"; $("wErr").hidden = true; $("wTitle").textContent = lastCfg.motorista ? "Seus dados" : "Bem-vindo, motorista!"; $("wSalvar").textContent = lastCfg.motorista ? "Salvar" : "Começar"; }
   views.forEach(x => $("v-" + x).hidden = x !== v);
+  $("navC").hidden = modOf[v] !== "C"; $("navR").hidden = modOf[v] !== "R";
   document.querySelectorAll(".navbtn").forEach(b => b.dataset.v === navOf[v] ? b.setAttribute("aria-current","page") : b.removeAttribute("aria-current"));
+  const isR = modOf[v] === "R";
+  $("hIcon").innerHTML = isR ? "$" : ICON_BOX;
+  $("hTitle").textContent = titleOf[v] || "Bipou";
+  if (v === "hub") renderHub();
+  if (v === "rota") fillRota();
+  if (v === "rres") renderRres();
+  if (v === "rext") renderRext();
+  if (v === "rotas") renderRotas();
   window.scrollTo(0,0);
   if (v === "escanear"){ renderScanHead(); startCamera(); } else stopCamera();
   if (v === "inicio") renderHome();
@@ -430,7 +592,7 @@ function go(v){
 }
 document.querySelectorAll(".navbtn").forEach(b => b.addEventListener("click", () => go(b.dataset.v)));
 document.querySelectorAll("[data-back]").forEach(b => b.addEventListener("click", () => go(b.dataset.back)));
-function renderTopSub(){ const s = $("topSub"), a = active(); if (a){ s.textContent = "Grade " + a.grade; s.hidden = false; } else s.hidden = true; }
+function renderTopSub(){ const s = $("topSub"), a = active(); if (a && modOf[current] === "C"){ s.textContent = "Grade " + a.grade; s.hidden = false; } else s.hidden = true; }
 
 /* ---------- Início ---------- */
 function sessButton(s){
@@ -445,8 +607,6 @@ function sessButton(s){
   return b;
 }
 function renderHome(){
-  const h = new Date().getHours();
-  $("hello").textContent = (h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite") + (lastCfg.motorista ? ", " + lastCfg.motorista.split(" ")[0] : "") + ".";
   $("helloDate").textContent = new Date().toLocaleDateString("pt-BR", {weekday:"long", day:"numeric", month:"long"});
   const a = active();
   $("activeCard").hidden = !a;
@@ -463,6 +623,13 @@ function renderHome(){
   if (!list.length){ const p = document.createElement("p"); p.className = "hint"; p.textContent = "Nenhuma leitura hoje ou ontem. Toque em Nova leitura para começar."; box.appendChild(p); }
   list.forEach(s => box.appendChild(sessButton(s)));
 }
+function renderHub(){
+  const h = new Date().getHours();
+  $("hubHello").textContent = (h < 12 ? "Bom dia" : h < 18 ? "Boa tarde" : "Boa noite") + (lastCfg.motorista ? ", " + lastCfg.motorista.split(" ")[0] : "") + ".";
+}
+$("goContagem").addEventListener("click", () => go("inicio"));
+$("goRota").addEventListener("click", () => go("rota"));
+$("btnEditNome").addEventListener("click", () => go("bemvindo"));
 $("btnContinuar").addEventListener("click", () => go("escanear"));
 $("btnNova").addEventListener("click", () => go("nova"));
 $("btnHist").addEventListener("click", () => go("codigos"));
@@ -473,10 +640,9 @@ $("wSalvar").addEventListener("click", () => {
   if (!nome){ $("wErr").hidden = false; $("wNome").focus(); return; }
   lastCfg = Object.assign({}, lastCfg, {motorista: nome, veiculo: $("wVeiculo").value});
   store.set("xpt-lastcfg", lastCfg);
-  go("inicio");
+  go("hub");
 });
 $("wNome").addEventListener("keydown", e => { if (e.key === "Enter") $("wSalvar").click(); });
-$("btnTrocarNome").addEventListener("click", () => go("bemvindo"));
 
 /* ---------- Nova leitura ---------- */
 let multi = false;
@@ -988,6 +1154,284 @@ function estimate(veiculo, n){
   return {total: Math.round((a*r[0] + b*r[1] + c*r[2]) * 100) / 100, parts: parts.length ? parts : ["0 pacotes"]};
 }
 
+
+/* ---------- Cálculo de rota ----------
+   Distância em LINHA RETA (como avião), pela latitude e longitude da sede de cada cidade.
+   Origem fixa: Porto Nacional. Vale a cidade mais distante, ida e volta somadas. */
+const ORIGEM = [-10.7027, -48.4080];
+const CIDADES = [
+  {n:"Chapada da Natividade", c:[-11.6175, -47.7486]},
+  {n:"Cristalândia", c:[-10.5985, -49.1942]},
+  {n:"Fátima", c:[-10.7603, -48.9076]},
+  {n:"Luzimangues (distrito)", c:[-10.19, -48.46]},
+  {n:"Monte do Carmo", c:[-10.7611, -48.1114]},
+  {n:"Natividade", c:[-11.7034, -47.7223]},
+  {n:"Nova Pinheirópolis (distrito)", km:10},
+  {n:"Nova Rosalândia", c:[-10.5651, -48.9125]},
+  {n:"Oliveira de Fátima", c:[-10.7070, -48.9086]},
+  {n:"Porto Nacional", km:0},
+  {n:"Santa Rita do Tocantins", c:[-10.8617, -48.9161]},
+  {n:"Santa Rosa do Tocantins", c:[-11.4474, -48.1216]},
+  {n:"Silvanópolis", c:[-11.1471, -48.1694]}
+];
+// Valor da rota por veículo e faixa de km (ida e volta): até 100, até 150, até 200, até 300, até 350.
+const TAB_ROTA = {
+  Passeio:[223.13, 254.55, 281.82, 313.64, 313.64],
+  Fiorino:[280.21, 309.86, 349.25, 384.86, 384.86],
+  Van:[301.63, 348.43, 395.24, 442.04, 488.85],
+  VUC:[432.68, 470.70, 515.47, 530.76, 543.97],
+  HR:[301.63, 348.43, 395.24, 442.04, 488.85]
+};
+const FAIXA_MAX = [100, 150, 200, 300, 350];
+const FAIXA_NOME = ["0 a 100 km", "100 a 150 km", "150 a 200 km", "200 a 300 km", "300 a 350 km"];
+function linhaReta(a, b){
+  const R = 6371, r = x => x * Math.PI / 180;
+  const dLa = r(b[0] - a[0]), dLo = r(b[1] - a[1]);
+  const h = Math.sin(dLa/2)**2 + Math.cos(r(a[0])) * Math.cos(r(b[0])) * Math.sin(dLo/2)**2;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+const cidadeKm = nome => { const c = CIDADES.find(x => x.n === nome); if (!c) return 0; return c.km != null ? c.km : linhaReta(ORIGEM, c.c); };
+const fmtKm = v => v.toLocaleString("pt-BR", {minimumFractionDigits:1, maximumFractionDigits:1}) + " km";
+function calcRota(r){
+  let longe = r.cidades[0], ida = 0;
+  r.cidades.forEach(n => { const k = cidadeKm(n); if (k >= ida){ ida = k; longe = n; } });
+  const total = ida * 2;
+  let fx = FAIXA_MAX.findIndex(m => total <= m); const acima = fx < 0; if (acima) fx = FAIXA_MAX.length - 1;
+  const valorRota = TAB_ROTA[r.veiculo] ? TAB_ROTA[r.veiculo][fx] : 0;
+  const pac = r.pacotes != null && r.pacotes !== "" ? Number(r.pacotes) : null;
+  const ep = pac != null ? estimate(r.veiculo, pac) : null;
+  const valorPac = ep ? ep.total : 0;
+  return {longe, ida, total, fx, acima, valorRota, pac, ep, valorPac, totalGeral: Math.round((valorRota + valorPac) * 100) / 100};
+}
+
+let rotas = store.get("xpt-rotas", []); if (!Array.isArray(rotas)) rotas = [];
+const saveRotas = () => { if (!store.set("xpt-rotas", rotas)) toast("Atenção: não foi possível salvar no aparelho."); };
+let rotaId = null, editId = null;
+const rotaById = id => rotas.find(r => r.id === id) || null;
+
+function cityOptions(sel){
+  const s = document.createElement("select"); s.className = "rCity";
+  const o0 = document.createElement("option"); o0.value = ""; o0.textContent = "Escolha a cidade"; s.appendChild(o0);
+  CIDADES.forEach(c => { const o = document.createElement("option"); o.value = c.n; o.textContent = c.n; s.appendChild(o); });
+  s.value = sel || ""; return s;
+}
+function renderCityRows(vals){
+  const multi = $("rMulti").checked, box = $("rCities"); box.textContent = "";
+  let list = (vals && vals.length ? vals.slice() : [""]);
+  if (multi && list.length < 2) list.push("");
+  if (!multi) list = list.slice(0, 1);
+  list.forEach((v, i) => {
+    const row = document.createElement("div"); row.className = "rcity";
+    const n = document.createElement("span"); n.className = "num"; n.textContent = i + 1;
+    row.append(n, cityOptions(v));
+    if (multi){
+      const x = document.createElement("button"); x.type = "button"; x.className = "rm"; x.textContent = "✕"; x.setAttribute("aria-label", "Tirar esta cidade");
+      x.addEventListener("click", () => { const cur = currentRotaCities(true); cur.splice(i, 1); renderCityRows(cur); });
+      row.appendChild(x);
+    }
+    box.appendChild(row);
+  });
+  $("rOrder").hidden = !multi; $("rAdd").hidden = !multi;
+}
+const currentRotaCities = keepEmpty => [...document.querySelectorAll(".rCity")].map(s => s.value).filter(v => keepEmpty || v);
+$("rMulti").addEventListener("change", () => renderCityRows(currentRotaCities(true)));
+$("rAdd").addEventListener("click", () => { const cur = currentRotaCities(true); cur.push(""); renderCityRows(cur); const all = document.querySelectorAll(".rCity"); all[all.length-1].focus(); });
+function showRErr(t){ $("rErr").hidden = !t; $("rErrText").textContent = t || ""; }
+function fillRota(){
+  showRErr("");
+  const r = editId ? rotaById(editId) : null;
+  $("rMulti").checked = !!(r && r.cidades.length > 1);
+  renderCityRows(r ? r.cidades : []);
+  $("rVeic").value = r ? r.veiculo : (lastCfg.veiculo || "Passeio");
+  $("rGrade").value = r ? r.grade : "";
+  $("rData").value = r ? r.day : today();
+  $("rViagem").value = r ? r.viagem : "";
+  $("rPac").value = r && r.pacotes != null ? r.pacotes : "";
+  $("rCalc").textContent = r ? "Salvar e calcular" : "Calcular valor";
+}
+$("rCalc").addEventListener("click", () => {
+  const cidades = currentRotaCities(false);
+  if (!cidades.length) return showRErr("Escolha a cidade de destino.");
+  const pacRaw = $("rPac").value.trim();
+  if (pacRaw && !(Number(pacRaw) >= 0)) return showRErr("Digite a quantidade de pacotes só com números.");
+  showRErr("");
+  const now = Date.now();
+  const base = {cidades, veiculo:$("rVeic").value, grade:$("rGrade").value.trim().toUpperCase(), day:$("rData").value || today(),
+    viagem:$("rViagem").value.trim(), pacotes: pacRaw ? Math.round(Number(pacRaw)) : null, motorista:lastCfg.motorista};
+  if (editId){ const r = rotaById(editId); Object.assign(r, base); rotaId = r.id; }
+  else { const r = Object.assign({id:"R" + now.toString(36), createdAt:now}, base); rotas.push(r); rotaId = r.id; }
+  editId = null; saveRotas(); go("rres");
+});
+function kvRows(box, pairs){
+  box.textContent = "";
+  pairs.forEach(([k, v]) => { const d = document.createElement("div"); const a = document.createElement("span"); a.textContent = k; const b = document.createElement("b"); b.textContent = v; d.append(a, b); box.appendChild(d); });
+}
+let rDelArmed = false;
+function renderRres(){
+  const r = rotaById(rotaId); if (!r){ go("rota"); return; }
+  const c = calcRota(r);
+  $("rrValor").textContent = brl(c.totalGeral);
+  const pairs = [
+    [r.cidades.length > 1 ? "Cidade mais distante" : "Destino", c.longe],
+    ["Linha reta (ida)", fmtKm(c.ida)],
+    ["Ida e volta", fmtKm(c.total)],
+    ["Faixa da tabela", FAIXA_NOME[c.fx] + (c.acima ? " (acima de 350 km)" : "")],
+    ["Rota (" + r.veiculo + ")", brl(c.valorRota)]
+  ];
+  if (c.pac != null) pairs.push([plural(c.pac), c.ep ? brl(c.valorPac) : "sem valor por pacote"]);
+  kvRows($("rrKv"), pairs);
+  $("rrHint").textContent = c.pac != null ? (c.ep ? "Pacotes: " + c.ep.parts.join(" + ") : "O veículo " + r.veiculo + " não tem valor por pacote na tabela.") : (r.cidades.length > 1 ? "Roteiro: " + r.cidades.join(" → ") : "");
+  $("rrHint").hidden = !$("rrHint").textContent;
+  $("rrNoPac").hidden = c.pac != null;
+  rDelArmed = false; renderRDel();
+}
+function renderRDel(){
+  const w = $("rrDelWrap"); w.textContent = "";
+  if (!rDelArmed){ const b = document.createElement("button"); b.type = "button"; b.className = "link-btn"; b.style.color = "var(--err)"; b.textContent = "Apagar esta rota"; b.addEventListener("click", () => { rDelArmed = true; renderRDel(); }); w.appendChild(b); return; }
+  const box = document.createElement("div"); box.className = "inline-confirm"; box.style.width = "100%";
+  const t = document.createElement("span"); t.textContent = "Apagar esta rota do histórico? Isso não pode ser desfeito.";
+  const row = document.createElement("div"); row.className = "row2";
+  const y = document.createElement("button"); y.className = "btn danger"; y.textContent = "Apagar";
+  const n = document.createElement("button"); n.className = "btn ghost"; n.textContent = "Cancelar";
+  y.addEventListener("click", () => { rotas = rotas.filter(x => x.id !== rotaId); saveRotas(); toast("Rota apagada."); go("rotas"); });
+  n.addEventListener("click", () => { rDelArmed = false; renderRDel(); });
+  row.append(y, n); box.append(t, row); w.appendChild(box);
+}
+$("rrExt").addEventListener("click", () => go("rext"));
+$("rrEdit").addEventListener("click", () => { editId = rotaId; go("rota"); });
+$("rrNova").addEventListener("click", () => { editId = null; go("rota"); });
+
+function extratoLinhas(r, c){
+  const L = [["Motorista", r.motorista || "-"], ["Veículo", r.veiculo]];
+  if (r.grade) L.push(["Grade", r.grade]);
+  L.push(["Origem", "Porto Nacional"]);
+  L.push([r.cidades.length > 1 ? "Roteiro" : "Destino", r.cidades.map((n, i) => r.cidades.length > 1 ? (i + 1) + ". " + n : n).join("\n")]);
+  L.push(["Ida e volta (linha reta)", fmtKm(c.total)]);
+  L.push(["Rota · faixa " + FAIXA_NOME[c.fx], brl(c.valorRota)]);
+  if (c.pac != null) L.push(["Pacotes (" + c.pac + ")", c.ep ? brl(c.valorPac) : "sem valor"]);
+  return L;
+}
+function renderRext(){
+  const r = rotaById(rotaId); if (!r){ go("rotas"); return; }
+  const c = calcRota(r), box = $("rxBox"); box.textContent = "";
+  const h = document.createElement("div"); h.className = "rc-h";
+  const hb = document.createElement("b"); hb.textContent = "Bipou · Extrato da rota";
+  const hs = document.createElement("span"); hs.textContent = (r.viagem ? "ID da viagem " + r.viagem + " · " : "") + fmtDay(r.day);
+  h.append(hb, hs); box.appendChild(h);
+  const kv = document.createElement("div"); kv.className = "kvl";
+  extratoLinhas(r, c).forEach(([k, v]) => { const d = document.createElement("div"); const a = document.createElement("span"); a.textContent = k; const b = document.createElement("b"); b.style.whiteSpace = "pre-line"; b.textContent = v; d.append(a, b); kv.appendChild(d); });
+  box.appendChild(kv);
+  const t = document.createElement("div"); t.className = "rc-tot";
+  const ts = document.createElement("span"); ts.textContent = "TOTAL ESTIMADO"; const tb = document.createElement("b"); tb.textContent = brl(c.totalGeral);
+  t.append(ts, tb); box.appendChild(t);
+  if (c.pac == null){ const n = document.createElement("div"); n.className = "rnote"; n.style.marginTop = "10px"; n.textContent = "Valor somente da rota. Pacotes não incluídos."; box.appendChild(n); }
+  const f = document.createElement("p"); f.className = "rc-foot"; f.textContent = "Valores estimados com base na tabela de rotas."; box.appendChild(f);
+}
+function extratoPdf(r){
+  const c = calcRota(r), J = window.jspdf && window.jspdf.jsPDF;
+  if (!J) return null;
+  const linhas = extratoLinhas(r, c);
+  const W = 100, M = 8;
+  // altura conforme o conteúdo
+  let H = 46 + 4;
+  const measure = new J({unit:"mm", format:[W, 200]});
+  measure.setFont("helvetica", "normal"); measure.setFontSize(9.5);
+  const rowsH = linhas.map(([k, v]) => { const lv = measure.splitTextToSize(String(v), 46); return Math.max(1, lv.length) * 4.6 + 3.4; });
+  H += rowsH.reduce((a, b) => a + b, 0) + 22 + (c.pac == null ? 12 : 0) + 14;
+  const d = new J({unit:"mm", format:[W, H]});
+  d.setFillColor(255, 230, 0); d.rect(0, 0, W, 24, "F");
+  d.setFillColor(45, 50, 119); d.roundedRect(M, 6, 12, 12, 2.5, 2.5, "F");
+  d.setDrawColor(255, 230, 0); d.setLineWidth(0.6);
+  const bx = M + 6, by = 12, u = 0.36;
+  d.lines([[8*u,-4*u],[8*u,4*u],[0,9*u],[-8*u,4*u],[-8*u,-4*u],[0,-9*u]], bx - 8*u, by - 2*u, [1,1], "S", true);
+  d.line(bx - 8*u, by - 2*u, bx, by + 2*u); d.line(bx, by + 2*u, bx + 8*u, by - 2*u); d.line(bx, by + 2*u, bx, by + 11*u);
+  d.setTextColor(45, 50, 119); d.setFont("helvetica", "bold"); d.setFontSize(15); d.text("Bipou", M + 15, 12.6);
+  d.setFontSize(9.5); d.setFont("helvetica", "normal"); d.text("Extrato da rota", M + 15, 17.4);
+  d.setTextColor(90, 95, 110); d.setFontSize(8.5);
+  d.text((r.viagem ? "ID da viagem " + r.viagem + "  ·  " : "") + fmtDay(r.day), W - M, 30, {align:"right"});
+  let y = 38;
+  d.setDrawColor(200, 203, 212); d.setLineWidth(0.3); d.setLineDashPattern([1, 1], 0); d.line(M, y - 3, W - M, y - 3);
+  linhas.forEach(([k, v], i) => {
+    d.setFont("helvetica", "normal"); d.setFontSize(9.5); d.setTextColor(102, 107, 122);
+    d.text(String(k), M, y + 1.2);
+    d.setFont("helvetica", "bold"); d.setTextColor(31, 34, 48);
+    const lv = d.splitTextToSize(String(v), 46);
+    d.text(lv, W - M, y + 1.2, {align:"right"});
+    y += rowsH[i];
+    d.line(M, y - 2.2, W - M, y - 2.2);
+  });
+  d.setLineDashPattern([], 0); d.setDrawColor(31, 34, 48); d.setLineWidth(0.6); d.line(M, y + 1, W - M, y + 1);
+  y += 9;
+  d.setFont("helvetica", "bold"); d.setFontSize(10.5); d.setTextColor(31, 34, 48); d.text("TOTAL ESTIMADO", M, y);
+  d.setFontSize(15); d.setTextColor(0, 166, 80); d.text(brl(c.totalGeral), W - M, y + 0.6, {align:"right"});
+  y += 8;
+  if (c.pac == null){
+    d.setFillColor(255, 241, 214); d.roundedRect(M, y - 1, W - 2*M, 9, 2, 2, "F");
+    d.setFontSize(8.8); d.setTextColor(122, 73, 0); d.setFont("helvetica", "bold");
+    d.text("Valor somente da rota. Pacotes não incluídos.", W / 2, y + 4.8, {align:"center"});
+    y += 12;
+  }
+  d.setFont("helvetica", "normal"); d.setFontSize(7.5); d.setTextColor(140, 140, 150);
+  d.text("Valores estimados com base na tabela de rotas.", W / 2, y + 3, {align:"center"});
+  d.text("Bipou · Aplicativo desenvolvido por Rafael Rabelo", W / 2, y + 7, {align:"center"});
+  return d.output("blob");
+}
+const pdfNome = r => "Extrato_" + (clean((r.motorista || "").split(" ")[0]) || "Bipou") + (r.grade ? "_" + clean(r.grade) : "") + "_" + fmtDay(r.day).replace(/\//g, "-") + ".pdf";
+function enviarExtrato(mode){
+  const r = rotaById(rotaId); if (!r) return;
+  const blob = extratoPdf(r);
+  if (!blob){ toast("O gerador de PDF ainda está carregando. Tente de novo."); return; }
+  const c = calcRota(r);
+  deliver(pdfNome(r), new Blob([blob], {type:"application/pdf"}), mode, "Bipou · Extrato da rota · " + (r.cidades.join(", ")) + " · " + brl(c.totalGeral));
+}
+$("rxShare").addEventListener("click", () => enviarExtrato("share"));
+$("rxDl").addEventListener("click", () => enviarExtrato("download"));
+
+/* Minhas rotas */
+let rFiltro = "hoje";
+document.querySelectorAll("[data-rf]").forEach(c => c.addEventListener("click", () => {
+  rFiltro = c.dataset.rf;
+  document.querySelectorAll("[data-rf]").forEach(x => x.setAttribute("aria-pressed", String(x === c)));
+  $("rDatePick").hidden = rFiltro !== "data";
+  if (rFiltro === "data" && !$("rfData").value) $("rfData").value = yesterday();
+  renderRotas();
+}));
+$("rfData").addEventListener("input", renderRotas);
+function renderRotas(){
+  const box = $("rotasList"); box.textContent = "";
+  let list = rotas.slice();
+  if (rFiltro === "hoje") list = list.filter(r => r.day === today());
+  else if (rFiltro === "ontem") list = list.filter(r => r.day === yesterday());
+  else if (rFiltro === "data") list = list.filter(r => r.day === $("rfData").value);
+  list.sort((a, b) => a.day === b.day ? b.createdAt - a.createdAt : (a.day < b.day ? 1 : -1));
+  if (!list.length){
+    const e = document.createElement("div"); e.className = "card empty";
+    const p = document.createElement("span");
+    p.textContent = rFiltro === "hoje" ? "Nenhuma rota calculada hoje." : rFiltro === "ontem" ? "Nenhuma rota ontem." : rFiltro === "data" ? "Nenhuma rota nesta data." : "Nenhuma rota salva ainda.";
+    const b = document.createElement("button"); b.className = "btn primary"; b.textContent = "Calcular uma rota"; b.addEventListener("click", () => { editId = null; go("rota"); });
+    e.append(p, b); box.appendChild(e); return;
+  }
+  let lastDay = null, wrap = null;
+  list.forEach(r => {
+    if (r.day !== lastDay){
+      lastDay = r.day;
+      const dh = document.createElement("div"); dh.className = "dayhead";
+      dh.textContent = dayLabel(r.day) + (dayLabel(r.day) !== fmtDay(r.day) ? " · " + fmtDay(r.day) : "");
+      box.appendChild(dh);
+      const card = document.createElement("div"); card.className = "card"; card.style.padding = "4px 18px";
+      wrap = document.createElement("div"); wrap.className = "rlist"; card.appendChild(wrap); box.appendChild(card);
+    }
+    const c = calcRota(r);
+    const b = document.createElement("button");
+    const a = document.createElement("span"); a.className = "a"; a.textContent = r.cidades.length > 1 ? r.cidades.join(" → ") : r.cidades[0];
+    const s2 = document.createElement("span"); s2.className = "b"; s2.textContent = [r.grade ? "Grade " + r.grade : "", r.viagem ? "ID " + r.viagem : "", r.veiculo].filter(Boolean).join(" · ");
+    const v = document.createElement("span"); v.className = "v"; v.textContent = brl(c.totalGeral);
+    b.append(a, s2, v);
+    b.addEventListener("click", () => { rotaId = r.id; go("rres"); });
+    wrap.appendChild(b);
+  });
+}
+
 /* ---------- Exportar ---------- */
 function headerPairs(s, total){
   return [
@@ -1050,7 +1494,14 @@ async function deliver(name, blob, mode, text){
 
 /* ---------- Abertura ---------- */
 initWorker(); initDetector();
-go("inicio");
+go("hub");
+// Abertura: some sozinha em ~1,9 s, ou com um toque.
+(function(){
+  const sp = $("splash"); if (!sp) return;
+  const fim = () => { if (sp.parentNode) sp.remove(); };
+  sp.addEventListener("click", fim);
+  setTimeout(fim, 1950);
+})();
 window.__xpt = {handleCode: v => handleCode(v, "manual")};
 if ("serviceWorker" in navigator && location.protocol === "https:" && !window.claude){
   navigator.serviceWorker.register("sw.js").catch(() => {});
