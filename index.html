@@ -413,7 +413,7 @@ nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:40;background:var(--su
       <input type="search" id="fBusca" placeholder="Buscar número do pacote" inputmode="numeric">
     </div>
     <div id="histList" class="view"></div>
-    <p class="credit">Bipou · Este aplicativo foi criado por Rafael Rabelo<br>versão 8</p>
+    <p class="credit">Bipou · Este aplicativo foi criado por Rafael Rabelo<br>versão 9</p>
   </section>
 
   <!-- DETALHE DE UMA LEITURA -->
@@ -1142,16 +1142,15 @@ function renderDelete(){
 }
 
 /* ---------- Valor por pacote (tabela de veículos) ----------
-   Por faixa: do 1º ao 60º pacote R$ 0,24 cada; do 61º ao 90º R$ 0,56; do 91º em diante R$ 0,32.
+   A quantidade TOTAL define a faixa, e todos os pacotes valem o preço dessa faixa:
+   até 60 pacotes R$ 0,24 cada; de 61 a 90 R$ 0,56 cada; acima de 90 R$ 0,32 cada.
    Só Passeio e Fiorino têm valor por pacote na tabela. */
 const RATES = {Passeio:[0.24,0.56,0.32], Fiorino:[0.24,0.56,0.32]};
 const brl = v => v.toLocaleString("pt-BR", {style:"currency", currency:"BRL"});
 function estimate(veiculo, n){
   const r = RATES[veiculo]; if (!r) return null;
-  const a = Math.min(n, 60), b = Math.min(Math.max(n - 60, 0), 30), c = Math.max(n - 90, 0);
-  const parts = [];
-  [[a, r[0]], [b, r[1]], [c, r[2]]].forEach(([q, v]) => { if (q) parts.push(q + " × " + brl(v)); });
-  return {total: Math.round((a*r[0] + b*r[1] + c*r[2]) * 100) / 100, parts: parts.length ? parts : ["0 pacotes"]};
+  const v = n <= 60 ? r[0] : n <= 90 ? r[1] : r[2];
+  return {total: Math.round(n * v * 100) / 100, parts: [n + (n === 1 ? " pacote" : " pacotes") + " × " + brl(v)]};
 }
 
 
